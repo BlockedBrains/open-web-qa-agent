@@ -203,6 +203,12 @@ The heatmap helps you see where risk is concentrated. It is useful when a run is
 
 The history view turns repeated runs into trend data. Use it to answer whether quality is improving, regressing, or just changing coverage between runs.
 
+### Route graph
+
+![Dashboard route graph](docs/assets/product/dashboard-route-graph.png)
+
+The route graph visualizes route relationships, discovered edges, and interaction outcomes in a single canvas. It is useful when you need to see how the crawler moved through the application rather than just reading a flat list of pages.
+
 ### Route tree
 
 ![Dashboard route tree](docs/assets/product/dashboard-route-tree.png)

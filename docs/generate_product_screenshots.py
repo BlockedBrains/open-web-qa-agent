@@ -415,6 +415,7 @@ def generate() -> None:
             ("dashboard-overview.png", "Pages", None),
             ("dashboard-heatmap.png", "Heatmap", "#hmList .hm-row"),
             ("dashboard-history.png", "History", ".history-table"),
+            ("dashboard-route-graph.png", "Route Graph", "#graphCanvas"),
             ("dashboard-route-tree.png", "Route Tree", "#treeBox .tree2-row"),
             ("dashboard-explorer.png", "Explorer", "#explorerContent"),
         ]
