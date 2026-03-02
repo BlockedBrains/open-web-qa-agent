@@ -15,6 +15,10 @@ This tool has 2 separate responsibilities:
 
 Those 2 systems should stay separate. The explorer is for breadth and discovery. Workflows are for regression checking.
 
+![Overview flow](docs/assets/overview-flow.svg)
+
+This high-level flow is the operating loop of the project: configure a site, crawl it, analyze what happened, then review the dashboard and report artifacts.
+
 ---
 
 ## Open Source Hygiene
@@ -29,6 +33,8 @@ This repository is structured so you can publish the source without leaking loca
 ---
 
 ## Quick Setup
+
+The setup path is intentionally simple: create a local `.env`, copy the example site profile, run the agent, then open the dashboard or report artifacts.
 
 ### 1. Install Ollama + model
 ```bash
@@ -175,6 +181,42 @@ The page explorer is now state-aware as well as route-aware.
 
 ---
 
+## Product Tour
+
+These are real screenshots from the dashboard generated from synthetic example data. They show the product itself without exposing private site names, routes, or customer content.
+
+### Dashboard overview
+
+![Dashboard overview](docs/assets/product/dashboard-overview.png)
+
+This is the main operator view. It gives a run-at-a-glance summary with page health, failures, workflow status, and the core page table used for triage.
+
+### Route heatmap
+
+![Dashboard heatmap](docs/assets/product/dashboard-heatmap.png)
+
+The heatmap helps you see where risk is concentrated. It is useful when a run is large and you need to identify the worst routes before drilling into raw evidence.
+
+### History trends
+
+![Dashboard history](docs/assets/product/dashboard-history.png)
+
+The history view turns repeated runs into trend data. Use it to answer whether quality is improving, regressing, or just changing coverage between runs.
+
+### Route tree
+
+![Dashboard route tree](docs/assets/product/dashboard-route-tree.png)
+
+The route tree groups findings by application structure. This is one of the fastest ways to tell whether failures are isolated to one branch or spread across the product.
+
+### Explorer planner
+
+![Dashboard explorer](docs/assets/product/dashboard-explorer.png)
+
+The explorer view shows the self-learning side of the crawler: route novelty, frontier planning, and discovery progress for future runs.
+
+---
+
 ## Documentation Map
 
 Use the docs in this order:
@@ -216,6 +258,10 @@ This repository includes the standard open-source project files expected by Git 
 ---
 
 ## Mental Model
+
+![Explorer vs workflows](docs/assets/explorer-vs-workflows.svg)
+
+The system has two engines with different responsibilities. The image below is the most important architectural distinction in the repo: explorer mode is adaptive and broad, while workflows are explicit and narrow.
 
 ### 1. Self-learning explorer
 
@@ -376,6 +422,10 @@ The tab is a debugging and observability surface for the self-learning system.
 ---
 
 ## Output Files
+
+![Artifact map](docs/assets/artifact-map.svg)
+
+These artifacts are designed to answer different debugging questions. Think of them as layers: `report.html` for triage, `crawl_log.json` for raw evidence, `history.json` for trends, and `qa_knowledge.json` for what the explorer has learned.
 
 | File | Purpose |
 |---|---|
@@ -645,6 +695,10 @@ In that case the right action is not only to fix bugs, but also to improve cover
 ---
 
 ## Workflow Recording
+
+![Workflow recorder flow](docs/assets/workflow-recorder.svg)
+
+The recorder exists so you can capture stable, human-chosen business flows without turning the explorer into a self-mutating regression suite.
 
 Use `python agent.py --record-workflow` when you want to add or update a workflow.
 

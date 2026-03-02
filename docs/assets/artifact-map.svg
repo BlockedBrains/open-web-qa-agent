@@ -1,0 +1,34 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="420" rx="24" fill="#0B1020"/>
+  <rect x="28" y="28" width="1144" height="364" rx="20" fill="#111936" stroke="#24325E"/>
+  <text x="52" y="72" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="28" font-weight="700">Artifact Map</text>
+  <text x="52" y="100" fill="#A8B6D8" font-family="Arial, sans-serif" font-size="16">Each output file answers a different debugging question.</text>
+
+  <rect x="56" y="134" width="248" height="92" rx="16" fill="#3A2419" stroke="#FF9A51"/>
+  <text x="80" y="170" fill="#FFC48E" font-family="Arial, sans-serif" font-size="16" font-weight="700">report.html</text>
+  <text x="80" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Triage summary and focus areas</text>
+
+  <rect x="332" y="134" width="248" height="92" rx="16" fill="#132B3F" stroke="#2BA8D9"/>
+  <text x="356" y="170" fill="#7EE0FF" font-family="Arial, sans-serif" font-size="16" font-weight="700">crawl_log.json</text>
+  <text x="356" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Raw page-by-page evidence</text>
+
+  <rect x="608" y="134" width="248" height="92" rx="16" fill="#173125" stroke="#35C47A"/>
+  <text x="632" y="170" fill="#8DF0B1" font-family="Arial, sans-serif" font-size="16" font-weight="700">qa_knowledge.json</text>
+  <text x="632" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Explorer memory across runs</text>
+
+  <rect x="884" y="134" width="248" height="92" rx="16" fill="#172348" stroke="#3E5FB3"/>
+  <text x="908" y="170" fill="#9BC3FF" font-family="Arial, sans-serif" font-size="16" font-weight="700">workflows.json</text>
+  <text x="908" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Stable regression definitions</text>
+
+  <rect x="194" y="276" width="248" height="92" rx="16" fill="#201833" stroke="#8B6AF5"/>
+  <text x="218" y="312" fill="#D1C2FF" font-family="Arial, sans-serif" font-size="16" font-weight="700">history.json</text>
+  <text x="218" y="338" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Trend and delta tracking</text>
+
+  <rect x="480" y="276" width="248" height="92" rx="16" fill="#2F2528" stroke="#FF5C8A"/>
+  <text x="504" y="312" fill="#FFB9CA" font-family="Arial, sans-serif" font-size="16" font-weight="700">screenshots/</text>
+  <text x="504" y="338" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Visual evidence for failures</text>
+
+  <rect x="766" y="276" width="248" height="92" rx="16" fill="#1A2F35" stroke="#47D1C8"/>
+  <text x="790" y="312" fill="#98FFF5" font-family="Arial, sans-serif" font-size="16" font-weight="700">qa_data.js</text>
+  <text x="790" y="338" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="15">Offline dashboard hydration</text>
+</svg>

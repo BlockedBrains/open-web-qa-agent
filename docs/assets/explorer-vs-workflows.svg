@@ -1,0 +1,26 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="420" rx="24" fill="#0B1020"/>
+  <rect x="28" y="28" width="1144" height="364" rx="20" fill="#111936" stroke="#24325E"/>
+  <text x="52" y="72" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="28" font-weight="700">Explorer vs Workflow Mode</text>
+  <text x="52" y="100" fill="#A8B6D8" font-family="Arial, sans-serif" font-size="16">Two engines, two responsibilities, two kinds of evidence.</text>
+
+  <rect x="60" y="132" width="500" height="220" rx="18" fill="#132B3F" stroke="#2BA8D9"/>
+  <text x="88" y="172" fill="#7EE0FF" font-family="Arial, sans-serif" font-size="24" font-weight="700">Explorer Mode</text>
+  <text x="88" y="204" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Goal: find more surface area</text>
+  <text x="88" y="236" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• clicks broadly across routes and same-page states</text>
+  <text x="88" y="264" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• learns route novelty and element usefulness</text>
+  <text x="88" y="292" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• remembers pending links for future runs</text>
+  <text x="88" y="320" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• stores memory in qa_knowledge.json</text>
+
+  <rect x="640" y="132" width="500" height="220" rx="18" fill="#173125" stroke="#35C47A"/>
+  <text x="668" y="172" fill="#8DF0B1" font-family="Arial, sans-serif" font-size="24" font-weight="700">Workflow Mode</text>
+  <text x="668" y="204" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Goal: verify known business paths</text>
+  <text x="668" y="236" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• replays explicit, human-chosen steps</text>
+  <text x="668" y="264" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• fails when a required step breaks</text>
+  <text x="668" y="292" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• does not self-rewrite test definitions</text>
+  <text x="668" y="320" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="16">• stores definitions in workflows.json</text>
+
+  <rect x="516" y="182" width="168" height="72" rx="16" fill="#201833" stroke="#8B6AF5"/>
+  <text x="552" y="212" fill="#D1C2FF" font-family="Arial, sans-serif" font-size="15" font-weight="700">Shared Output</text>
+  <text x="553" y="234" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="16">report.html</text>
+</svg>

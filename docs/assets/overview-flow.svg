@@ -1,0 +1,37 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="320" rx="24" fill="#0B1020"/>
+  <rect x="28" y="28" width="1144" height="264" rx="20" fill="#111936" stroke="#24325E"/>
+  <text x="52" y="72" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="28" font-weight="700">Open Web QA Agent: High-Level Flow</text>
+  <text x="52" y="100" fill="#A8B6D8" font-family="Arial, sans-serif" font-size="16">From site profile configuration to actionable QA evidence.</text>
+
+  <rect x="52" y="136" width="220" height="104" rx="16" fill="#172348" stroke="#3E5FB3"/>
+  <text x="78" y="171" fill="#9BC3FF" font-family="Arial, sans-serif" font-size="15" font-weight="700">1. Configure</text>
+  <text x="78" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="20" font-weight="700">Site + Env</text>
+  <text x="78" y="222" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">site.json, .env, routes,</text>
+  <text x="78" y="242" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">auth hints, crawl limits</text>
+
+  <rect x="324" y="136" width="220" height="104" rx="16" fill="#132B3F" stroke="#2BA8D9"/>
+  <text x="350" y="171" fill="#7EE0FF" font-family="Arial, sans-serif" font-size="15" font-weight="700">2. Crawl</text>
+  <text x="350" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="20" font-weight="700">Explore The App</text>
+  <text x="350" y="222" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">public phase, authenticated</text>
+  <text x="350" y="242" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">phase, workflows, screenshots</text>
+
+  <rect x="596" y="136" width="220" height="104" rx="16" fill="#173125" stroke="#35C47A"/>
+  <text x="622" y="171" fill="#8DF0B1" font-family="Arial, sans-serif" font-size="15" font-weight="700">3. Analyze</text>
+  <text x="622" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="20" font-weight="700">Score + Learn</text>
+  <text x="622" y="222" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">route novelty, element memory,</text>
+  <text x="622" y="242" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">API failures, summaries</text>
+
+  <rect x="868" y="136" width="252" height="104" rx="16" fill="#3A2419" stroke="#FF9A51"/>
+  <text x="894" y="171" fill="#FFC48E" font-family="Arial, sans-serif" font-size="15" font-weight="700">4. Review</text>
+  <text x="894" y="196" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="20" font-weight="700">Dashboard + Report</text>
+  <text x="894" y="222" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">live dashboard, offline sidecar,</text>
+  <text x="894" y="242" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">HTML report, raw JSON evidence</text>
+
+  <path d="M272 188H324" stroke="#6D84C7" stroke-width="4" stroke-linecap="round"/>
+  <path d="M544 188H596" stroke="#53C5E8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M816 188H868" stroke="#58D591" stroke-width="4" stroke-linecap="round"/>
+  <path d="M308 188L293 178V198L308 188Z" fill="#6D84C7"/>
+  <path d="M580 188L565 178V198L580 188Z" fill="#53C5E8"/>
+  <path d="M852 188L837 178V198L852 188Z" fill="#58D591"/>
+</svg>

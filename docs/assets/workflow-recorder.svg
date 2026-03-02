@@ -1,0 +1,31 @@
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="320" rx="24" fill="#0B1020"/>
+  <rect x="28" y="28" width="1144" height="264" rx="20" fill="#111936" stroke="#24325E"/>
+  <text x="52" y="72" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="28" font-weight="700">Workflow Recorder</text>
+  <text x="52" y="100" fill="#A8B6D8" font-family="Arial, sans-serif" font-size="16">Capture intentional user journeys without teaching the explorer to mutate regressions.</text>
+
+  <circle cx="120" cy="192" r="34" fill="#172348" stroke="#3E5FB3"/>
+  <text x="111" y="199" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">1</text>
+  <text x="72" y="252" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">Open browser</text>
+
+  <circle cx="340" cy="192" r="34" fill="#132B3F" stroke="#2BA8D9"/>
+  <text x="331" y="199" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">2</text>
+  <text x="278" y="252" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">Login or reuse session</text>
+
+  <circle cx="560" cy="192" r="34" fill="#173125" stroke="#35C47A"/>
+  <text x="551" y="199" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">3</text>
+  <text x="494" y="252" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">Navigate to start page</text>
+
+  <circle cx="780" cy="192" r="34" fill="#3A2419" stroke="#FF9A51"/>
+  <text x="771" y="199" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">4</text>
+  <text x="712" y="252" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">Record clicks and inputs</text>
+
+  <circle cx="1000" cy="192" r="34" fill="#201833" stroke="#8B6AF5"/>
+  <text x="991" y="199" fill="#F7FAFF" font-family="Arial, sans-serif" font-size="24" font-weight="700">5</text>
+  <text x="939" y="252" fill="#C8D4EE" font-family="Arial, sans-serif" font-size="14">Save workflows.json</text>
+
+  <path d="M154 192H306" stroke="#6D84C7" stroke-width="4" stroke-linecap="round"/>
+  <path d="M374 192H526" stroke="#53C5E8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M594 192H746" stroke="#58D591" stroke-width="4" stroke-linecap="round"/>
+  <path d="M814 192H966" stroke="#F4A15D" stroke-width="4" stroke-linecap="round"/>
+</svg>
