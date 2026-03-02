@@ -107,7 +107,8 @@
       "crawl": "python agent.py --site example-site",
       "resume": "python agent.py --site example-site --resume",
       "serve": "python serve.py --site example-site",
-      "record_workflow": "python agent.py --site example-site --record-workflow"
+      "record_workflow": "python agent.py --site example-site --record-workflow",
+      "record_guided_tour": "python agent.py --site example-site --record-guided-tour"
     },
     "artifacts": {
       "site_config": "sites/example-site/site.json",

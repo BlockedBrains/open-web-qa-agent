@@ -29,10 +29,12 @@ import time
 from typing import Any
 
 from .heuristics import FORM_ACTION_KINDS, classify_route, summarize_interactions
+from .utils import canonicalize_path_from_url, clean_url
 
 KNOWLEDGE_FILE   = "qa_knowledge.json"
 SKIP_THRESHOLD   = 3      # skip element after this many consecutive no_change
 MAX_ROUTE_VISITS = 3      # after this many full visits, a route is "known"
+MAX_GUIDED_TOURS = 24
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -46,7 +48,8 @@ class ElementRecord:
         "discovered_urls", "first_seen", "last_seen", "last_useful",
         "broke", "priority", "skip_score", "new_elements_found",
         "attempts", "success_count", "neutral_count", "fail_count",
-        "discovery_count", "same_page_count",
+        "discovery_count", "same_page_count", "seeded_count",
+        "last_seeded", "seed_action_kinds",
     )
 
     def __init__(self, selector: str, text: str, route: str) -> None:
@@ -69,6 +72,9 @@ class ElementRecord:
         self.fail_count = 0
         self.discovery_count = 0
         self.same_page_count = 0
+        self.seeded_count = 0
+        self.last_seeded = 0.0
+        self.seed_action_kinds: list[str] = []
 
     @property
     def key(self) -> str:
@@ -157,6 +163,24 @@ class ElementRecord:
         if meta.get("action_kind") in FORM_ACTION_KINDS and useful_signal:
             self.priority = min(self.priority + 0.08, 5.0)
 
+    def seed(
+        self,
+        selector: str = "",
+        action_kind: str = "",
+        seeded_at: float | None = None,
+    ) -> None:
+        now = float(seeded_at or time.time())
+        if selector and (not self.selector or len(selector) < len(self.selector)):
+            self.selector = selector
+        self.last_seen = max(self.last_seen, now)
+        self.last_seeded = max(self.last_seeded, now)
+        self.seeded_count += 1
+        if action_kind and action_kind not in self.seed_action_kinds:
+            self.seed_action_kinds.append(action_kind)
+            self.seed_action_kinds = self.seed_action_kinds[-6:]
+        bonus = 0.22 if self.seeded_count == 1 else 0.06
+        self.priority = min(max(self.priority, 1.65) + bonus, 4.0)
+
     def to_dict(self) -> dict[str, Any]:
         return dict(
             selector=self.selector,
@@ -178,6 +202,9 @@ class ElementRecord:
             fail_count=self.fail_count,
             discovery_count=self.discovery_count,
             same_page_count=self.same_page_count,
+            seeded_count=self.seeded_count,
+            last_seeded=self.last_seeded,
+            seed_action_kinds=self.seed_action_kinds[-6:],
         )
 
     @classmethod
@@ -199,6 +226,9 @@ class ElementRecord:
         r.fail_count = d.get("fail_count", 0)
         r.discovery_count = d.get("discovery_count", r.new_elements_found)
         r.same_page_count = d.get("same_page_count", 0)
+        r.seeded_count = d.get("seeded_count", 0)
+        r.last_seeded = d.get("last_seeded", 0.0)
+        r.seed_action_kinds = d.get("seed_action_kinds", [])
         return r
 
 
@@ -225,6 +255,9 @@ class RouteKnowledge:
         self.page_kind = ""
         self.business_area = ""
         self.hub_score = 0.35
+        self.seeded_urls: set[str] = set()
+        self.seeded_count = 0
+        self.last_seeded = 0.0
 
     @property
     def novelty_score(self) -> float:
@@ -352,6 +385,9 @@ class RouteKnowledge:
             page_kind=self.page_kind,
             business_area=self.business_area,
             hub_score=round(self.hub_score, 3),
+            seeded_urls=list(self.seeded_urls)[:120],
+            seeded_count=self.seeded_count,
+            last_seeded=self.last_seeded,
         )
 
     @classmethod
@@ -372,6 +408,9 @@ class RouteKnowledge:
         rk.page_kind                = d.get("page_kind", "")
         rk.business_area            = d.get("business_area", "")
         rk.hub_score                = d.get("hub_score", 0.35)
+        rk.seeded_urls              = set(d.get("seeded_urls", []))
+        rk.seeded_count             = d.get("seeded_count", 0)
+        rk.last_seeded              = d.get("last_seeded", 0.0)
         for k, v in d.get("elements", {}).items():
             rk.elements[k] = ElementRecord.from_dict(v)
         return rk
@@ -446,6 +485,7 @@ class KnowledgeBase:
         self.run_count          = 0
         self.global_visited: set[str] = set()        # all URLs ever crawled across all runs
         self.effective_selectors: set[str] = set()    # selectors that produced nav/modal
+        self.guided_tours: list[dict[str, Any]] = []
 
     # ── Persistence ───────────────────────────────────────────────────────
 
@@ -459,6 +499,7 @@ class KnowledgeBase:
             self.run_count          = data.get("run_count", 0)
             self.global_visited     = set(data.get("global_visited", []))
             self.effective_selectors = set(data.get("effective_selectors", []))
+            self.guided_tours       = data.get("guided_tours", [])
             for route, rd in data.get("routes", {}).items():
                 self.routes[route] = RouteKnowledge.from_dict(rd)
             total_el    = sum(len(rk.elements) for rk in self.routes.values())
@@ -472,12 +513,14 @@ class KnowledgeBase:
             print(f"[KB] Load error: {e} — starting fresh")
             return False
 
-    def save(self) -> None:
-        self.run_count += 1
+    def save(self, increment_run: bool = True) -> None:
+        if increment_run:
+            self.run_count += 1
         data = dict(
             run_count           = self.run_count,
             global_visited      = list(self.global_visited)[:2000],
             effective_selectors = list(self.effective_selectors)[:200],
+            guided_tours        = self.guided_tours[-MAX_GUIDED_TOURS:],
             routes              = {r: rk.to_dict() for r, rk in self.routes.items()},
         )
         tmp = self.path + ".tmp"
@@ -486,7 +529,8 @@ class KnowledgeBase:
         os.replace(tmp, self.path)
         total_el   = sum(len(rk.elements) for rk in self.routes.values())
         total_skip = sum(len(rk.skippable_elements()) for rk in self.routes.values())
-        print(f"[KB] Saved run #{self.run_count}: {len(self.routes)} routes, "
+        prefix = f"[KB] Saved run #{self.run_count}" if increment_run else "[KB] Saved guided-tour seed"
+        print(f"{prefix}: {len(self.routes)} routes, "
               f"{total_el} elements, {total_skip} will be skipped next run")
 
     # ── Dijkstra frontier advisor ─────────────────────────────────────────
@@ -626,6 +670,174 @@ class KnowledgeBase:
         if outcome in ("navigation", "modal_open", "dom_mutation") and selector:
             self.effective_selectors.add(selector)
 
+    def seed_element(
+        self,
+        route: str,
+        text: str,
+        selector: str,
+        action_kind: str = "",
+        seeded_at: float | None = None,
+    ) -> None:
+        rk = self._ensure(route)
+        key = f"{route}::{text[:60].lower()}"
+        if key not in rk.elements:
+            rk.elements[key] = ElementRecord(selector, text, route)
+        rk.elements[key].seed(selector=selector, action_kind=action_kind, seeded_at=seeded_at)
+
+    def seed_guided_tour(self, tour: dict[str, Any]) -> dict[str, Any]:
+        name = str(tour.get("name", "") or f"guided_tour_{int(time.time())}")
+        started_at = float(tour.get("started_at", 0) or 0)
+        finished_at = float(tour.get("finished_at", 0) or started_at or time.time())
+        raw_events = tour.get("events", [])
+        if not isinstance(raw_events, list):
+            raw_events = []
+
+        normalized_events: list[dict[str, Any]] = []
+        touched_routes: set[str] = set()
+        touched_urls: set[str] = set()
+        route_titles: dict[str, str] = {}
+        route_interactions: dict[str, list[dict[str, Any]]] = {}
+        route_state_counts: dict[str, int] = {}
+        seeded_elements = 0
+        seeded_transitions = 0
+        last_url = ""
+        last_route = ""
+
+        for raw in raw_events:
+            if not isinstance(raw, dict):
+                continue
+            event = dict(raw)
+            url = clean_url(str(event.get("url", "") or event.get("to_url", "") or ""))
+            route = str(event.get("route", "") or "")
+            if not route and url:
+                route = canonicalize_path_from_url(url)
+            if not url and route:
+                event["route"] = route
+            if url:
+                event["url"] = url
+                touched_urls.add(url)
+            if route:
+                event["route"] = route
+                touched_routes.add(route)
+
+            timestamp = float(event.get("timestamp", 0) or finished_at or time.time())
+            title = str(event.get("title", "") or event.get("page_label", "") or "").strip()
+            if route and title:
+                route_titles[route] = title
+
+            if route and url:
+                rk = self._ensure(route)
+                rk.seeded_urls.add(url)
+                rk.seeded_count += 1
+                rk.last_seeded = max(rk.last_seeded, timestamp)
+                rk.known_links.add(url)
+                if url not in self.global_visited:
+                    rk.unvisited_links.add(url)
+
+            kind = str(event.get("kind", "") or "").lower()
+            if route and kind in {"page", "route", "state"}:
+                route_state_counts[route] = route_state_counts.get(route, 0) + 1
+
+            if route and kind in {"click", "fill", "select", "upload"}:
+                label = str(
+                    event.get("label")
+                    or event.get("description")
+                    or event.get("text")
+                    or event.get("selector")
+                    or ""
+                ).strip()
+                selector = str(event.get("selector", "") or "").strip()
+                action_kind = str(event.get("action_kind", "") or kind)
+                if label:
+                    self.seed_element(route, label, selector, action_kind=action_kind, seeded_at=timestamp)
+                    seeded_elements += 1
+                    route_interactions.setdefault(route, []).append({
+                        "action": label,
+                        "action_kind": action_kind,
+                        "selector": selector,
+                        "outcome": "navigation" if kind == "click" else "dom_mutation",
+                        "same_page_transition": kind in {"fill", "select", "upload"},
+                        "value_changed": kind in {"fill", "select", "upload"},
+                        "surface_delta": int(event.get("surface_delta", 0) or 0),
+                        "scope_kind": str(event.get("scope_kind", "") or ""),
+                    })
+
+            from_url = clean_url(str(event.get("from_url", "") or ""))
+            if from_url and url and from_url != url:
+                from_route = canonicalize_path_from_url(from_url)
+                if from_route:
+                    self.record_link(from_route, url)
+                    seeded_transitions += 1
+            elif last_url and url and last_url != url and last_route:
+                self.record_link(last_route, url)
+                seeded_transitions += 1
+
+            if url:
+                last_url = url
+                last_route = route
+
+            normalized_events.append(event)
+
+        for route in touched_routes:
+            rk = self._ensure(route)
+            title = route_titles.get(route, "")
+            states_seen = route_state_counts.get(route, 0)
+            route_meta = classify_route(
+                route,
+                title=title,
+                interactions=route_interactions.get(route, []),
+                links_found=len(rk.known_links),
+                states_seen=states_seen,
+            )
+            if not rk.page_kind:
+                rk.page_kind = route_meta["page_kind"]
+            if not rk.business_area:
+                rk.business_area = route_meta["business_area"]
+            rk.hub_score = round(max(rk.hub_score, route_meta["hub_score"]), 3)
+            rk.last_seeded = max(rk.last_seeded, finished_at)
+
+        start_url = clean_url(str(tour.get("start_url", "") or ""))
+        end_url = clean_url(str(tour.get("end_url", "") or last_url or ""))
+        tour_record = {
+            "name": name,
+            "label": str(tour.get("label", "") or name),
+            "started_at": started_at or finished_at,
+            "finished_at": finished_at,
+            "start_url": start_url,
+            "end_url": end_url,
+            "start_route": canonicalize_path_from_url(start_url) if start_url else "",
+            "end_route": canonicalize_path_from_url(end_url) if end_url else "",
+            "routes": sorted(touched_routes),
+            "urls": sorted(touched_urls),
+            "events": normalized_events,
+            "summary": {
+                "events": len(normalized_events),
+                "routes": len(touched_routes),
+                "urls": len(touched_urls),
+                "seeded_elements": seeded_elements,
+                "seeded_transitions": seeded_transitions,
+            },
+        }
+
+        replaced = False
+        for idx, existing in enumerate(self.guided_tours):
+            if str(existing.get("name", "")) == name:
+                self.guided_tours[idx] = tour_record
+                replaced = True
+                break
+        if not replaced:
+            self.guided_tours.append(tour_record)
+        self.guided_tours = self.guided_tours[-MAX_GUIDED_TOURS:]
+        return {
+            "name": name,
+            "replaced": replaced,
+            "events": len(normalized_events),
+            "routes": len(touched_routes),
+            "urls": len(touched_urls),
+            "seeded_elements": seeded_elements,
+            "seeded_transitions": seeded_transitions,
+        }
+
     def record_link(self, from_route: str, url: str) -> None:
         rk = self._ensure(from_route)
         rk.known_links.add(url)
@@ -647,6 +859,8 @@ class KnowledgeBase:
             global_visited   = len(self.global_visited),
             links_pending    = unvisited,
             hubs             = sum(1 for rk in self.routes.values() if rk.hub_score >= 0.65),
+            guided_tours     = len(self.guided_tours),
+            seeded_routes    = sum(1 for rk in self.routes.values() if rk.seeded_urls),
         )
 
     def route_stats(self) -> list[dict[str, Any]]:
@@ -668,6 +882,8 @@ class KnowledgeBase:
                 "hub_score":     round(rk.hub_score, 3),
                 "actions_seen":  rk.action_count_history[-1] if rk.action_count_history else 0,
                 "states_seen":   rk.state_count_history[-1] if rk.state_count_history else 0,
+                "seeded_urls":   len(rk.seeded_urls),
+                "last_seeded":   rk.last_seeded,
             })
         out.sort(key=lambda r: -r["novelty"])
         return out

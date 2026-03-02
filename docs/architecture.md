@@ -29,6 +29,12 @@ The project has 2 intentionally separate engines:
 The explorer is adaptive.
 The workflows are explicit.
 
+There is also an optional guided-tour recorder:
+
+- it seeds `qa_knowledge.json` with human-observed routes, controls, and transitions
+- it does not mark routes as crawler-visited
+- it does not write regression steps into `workflows.json`
+
 ## Who Owns What
 
 | Concern | Main file | Main function/class | What it owns |
@@ -42,6 +48,7 @@ The workflows are explicit.
 | LLM provider layer | `qa_agent/llm.py` | `call_chat`, `resolve_provider`, `resolve_model` | local Ollama and OpenAI-compatible cloud calls, JSON extraction, debug logging |
 | Workflow definitions and execution | `qa_agent/workflows.py` | `Scenario`, `WorkflowStep`, `ScenarioRunner` | workflow persistence, dynamic route resolution, step-by-step replay |
 | Workflow recording | `qa_agent/workflow_recorder.py` | `record_workflow_session` | records clicks, inputs, selects, uploads into `workflows.json` |
+| Guided-tour recording | `qa_agent/workflow_recorder.py` | `record_guided_tour_session` | records manual routes, clicks, inputs, and page-state snapshots into `qa_knowledge.json` as seeded hints |
 | Run history and report generation | `qa_agent/reporting.py` | `generate_report`, `save_history`, `compute_deltas`, `send_slack_alert` | report HTML, trend history, delta analysis, Slack alert |
 | Route normalization and URL hygiene | `qa_agent/utils.py` | `clean_url`, `same_origin`, `should_skip`, `canonicalize_path_from_url` | keeps frontier URLs consistent and safe |
 | Live dashboard UI | `dashboard.html` | browser-side render functions | consumes live events and persisted artifacts for visualization |
@@ -469,6 +476,24 @@ sequenceDiagram
     Recorder->>File: upsert_scenario()
 ```
 
+### Guided Tour Seeding Architecture
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as agent.py --record-guided-tour
+    participant Recorder as workflow_recorder.py
+    participant Browser as Playwright
+    participant KB as qa_knowledge.json
+
+    User->>Agent: start guided tour recorder
+    Agent->>Recorder: record_guided_tour_session()
+    Recorder->>Browser: open visible browser
+    User->>Browser: navigate, click, type, select
+    Recorder->>Recorder: normalize events into route and element hints
+    Recorder->>KB: seed routes, selectors, and transitions without marking visits
+```
+
 ### Workflow Execution Architecture
 
 ```mermaid
@@ -525,7 +550,7 @@ Artifacts and owners:
 | `crawl_log.json` | `CrawlRunner.run` | developers | raw page-level evidence |
 | `report.html` | `generate_report` | developers | triage and fix-oriented QA report |
 | `history.json` | `save_history` | `dashboard.html`, developers | trend and delta tracking |
-| `qa_knowledge.json` | `KnowledgeBase.save` | next crawl, dashboard | cross-run exploration memory |
+| `qa_knowledge.json` | `KnowledgeBase.save` / guided-tour recorder | next crawl, dashboard | cross-run exploration memory plus optional seeded tour hints |
 | `workflows.json` | workflow recorder / manual edits | `ScenarioRunner` | explicit regression definitions |
 | `qa_data.js` | `agent.py::_write_sidecar` | `dashboard.html` | offline dashboard hydration |
 | `screenshots/` | `Explorer._shot` | report, developers | visual evidence |

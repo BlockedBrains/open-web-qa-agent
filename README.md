@@ -15,6 +15,8 @@ This tool has 2 separate responsibilities:
 
 Those 2 systems should stay separate. The explorer is for breadth and discovery. Workflows are for regression checking.
 
+There is also an optional guided-tour recorder that seeds the explorer knowledge base from a human-driven session without turning that session into a regression workflow.
+
 ![Overview flow](docs/assets/overview-flow.svg)
 
 This high-level flow is the operating loop of the project: configure a site, crawl it, analyze what happened, then review the dashboard and report artifacts.
@@ -127,7 +129,14 @@ python agent.py --site example-site --record-workflow
 
 This opens a visible browser session, waits for you to move to the correct starting page, then records your clicks and field changes into the current site's `workflows.json`.
 
-### 8. Site profile layout
+### 8. Seed the knowledge base with a guided tour
+```bash
+python agent.py --site example-site --record-guided-tour
+```
+
+This opens a visible browser session, records the routes and controls you touch, and writes that evidence into `qa_knowledge.json` as seeded hints. Those hints help future runs know what exists and where to start looking, but they do not count as crawler-verified visits.
+
+### 9. Site profile layout
 
 Each site now gets its own workspace under `sites/<site_id>/`.
 
@@ -418,6 +427,7 @@ The Explorer tab itself does not improve future runs.
 What improves future runs is the data behind it:
 
 - `qa_knowledge.json`
+  - also stores optional guided-tour seeds and route hints
 - route novelty scoring
 - remembered unvisited links
 - element `priority`
@@ -439,7 +449,7 @@ These artifacts are designed to answer different debugging questions. Think of t
 | `crawl_log.json` | Raw per-page crawl output with evidence |
 | `history.json` | Run-over-run trend summary |
 | `crawl_state.json` | Resume snapshot for interrupted crawls |
-| `qa_knowledge.json` | Cross-run learning memory for explorer mode |
+| `qa_knowledge.json` | Cross-run learning memory for explorer mode, including optional guided-tour seeds |
 | `workflows.json` | Explicit workflow definitions |
 | `qa_data.js` | Dashboard sidecar so the dashboard can load without the agent running |
 | `screenshots/` | Per-page screenshot evidence |
@@ -730,6 +740,27 @@ They are not meant to replace the self-learning explorer.
 
 ---
 
+## Guided Tour Seeding
+
+Use `python agent.py --record-guided-tour` when you want to manually walk the product once so later explorer runs know the routes, controls, and transitions you already touched.
+
+The guided-tour recorder will:
+
+1. Open a visible Chromium session.
+2. Reuse the saved auth session or ask you to log in.
+3. Wait for you to navigate to the correct start page.
+4. Capture route changes, clicks, selects, uploads, field changes, and page-state snapshots.
+5. Seed `qa_knowledge.json` with routes, labels, selectors, and route-to-route transitions.
+
+Important guardrail:
+
+- guided tours seed discovery hints
+- guided tours do not increment crawler visit counts
+- guided tours do not rewrite `workflows.json`
+- guided tours do not mark routes as regression-verified
+
+---
+
 ## Current Limits
 
 The current QA system is strong at exploration and evidence gathering, but there are limits:
@@ -761,6 +792,14 @@ python agent.py
 
 Use this when you need repeatable checks for critical flows.
 
+### For human-seeded discovery
+```bash
+python agent.py --record-guided-tour
+python agent.py
+```
+
+Use this when the crawler needs an initial map of real product paths before broad exploration.
+
 ### For a fresh run with no old learning
 
 Delete these files before rerunning:
@@ -780,6 +819,7 @@ Do not delete `workflows.json` unless you intentionally want to reset workflow d
 - Dynamic workflow routes like `/project/:id` are resolved from real URLs discovered during the crawl.
 - If `workflows.json` does not exist, default workflows are bootstrapped automatically.
 - Explorer learning is persisted across runs in `qa_knowledge.json`.
+- Guided-tour seeds are persisted in `qa_knowledge.json` as hints, not as verified crawl coverage.
 
 ---
 

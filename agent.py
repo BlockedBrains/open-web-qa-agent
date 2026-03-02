@@ -11,7 +11,7 @@ import websockets
 from qa_agent.config import Settings
 from qa_agent.llm import preflight_llm
 from qa_agent.runner import CrawlRunner
-from qa_agent.workflow_recorder import record_workflow_session
+from qa_agent.workflow_recorder import record_guided_tour_session, record_workflow_session
 
 ACTIVE_SETTINGS: Settings | None = None
 
@@ -251,11 +251,23 @@ async def main() -> None:
         help="Optional workflow name to use with --record-workflow",
     )
     parser.add_argument(
+        "--record-guided-tour",
+        action="store_true",
+        help="Open a guided browser session and seed the knowledge base from a manual tour",
+    )
+    parser.add_argument(
+        "--guided-tour-name",
+        default="",
+        help="Optional guided tour name to use with --record-guided-tour",
+    )
+    parser.add_argument(
         "--site",
         default="",
         help="Optional site profile id under sites/<site_id>",
     )
     args = parser.parse_args()
+    if args.record_workflow and args.record_guided_tour:
+        parser.error("Choose only one recorder mode: --record-workflow or --record-guided-tour")
 
     if args.site:
         _prepare_site_selection(args.site)
@@ -282,6 +294,31 @@ async def main() -> None:
             print(f"  Route     : {result['route']}")
             print(f"  Start URL : {result['start_url']}")
             print(f"  File      : {result['workflows_file']}")
+        except RuntimeError as e:
+            print(f"\n  ERROR: {e}")
+        return
+
+    if args.record_guided_tour:
+        print(f"\n{'='*55}")
+        print("  Guided Tour Recorder")
+        print(f"{'='*55}")
+        print(f"  Target URL : {settings.base_url}")
+        print(f"  Knowledge  : {settings.knowledge_file}")
+        print(f"{'='*55}\n")
+        try:
+            result = await record_guided_tour_session(settings, tour_name=args.guided_tour_name)
+            action = "Updated" if result["replaced"] else "Saved"
+            print(
+                f"\n  {action} guided tour '{result['name']}' "
+                f"with {result['events']} event(s)"
+            )
+            print(f"  Start URL : {result['start_url']}")
+            print(f"  End URL   : {result['end_url']}")
+            print(f"  Routes    : {result['routes']}")
+            print(f"  URLs      : {result['urls']}")
+            print(f"  Elements  : {result['seeded_elements']}")
+            print(f"  Links     : {result['seeded_transitions']}")
+            print(f"  File      : {result['knowledge_file']}")
         except RuntimeError as e:
             print(f"\n  ERROR: {e}")
         return

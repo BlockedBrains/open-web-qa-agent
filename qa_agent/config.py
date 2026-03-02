@@ -223,6 +223,7 @@ class Settings:
                 "resume": f"python agent.py --site {self.site_id} --resume",
                 "serve": f"python serve.py --site {self.site_id}",
                 "record_workflow": f"python agent.py --site {self.site_id} --record-workflow",
+                "record_guided_tour": f"python agent.py --site {self.site_id} --record-guided-tour",
             },
             "artifacts": self.artifact_paths,
         }
