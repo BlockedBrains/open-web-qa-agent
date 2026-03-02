@@ -1,0 +1,125 @@
+{
+  "site_id": "example-site",
+  "site_name": "Example Site",
+  "base_url": "https://example.com",
+  "paths": {
+    "site_config": "sites/example-site/site.json",
+    "session": "sites/example-site/session.json",
+    "state": "sites/example-site/crawl_state.json",
+    "log": "sites/example-site/crawl_log.json",
+    "report": "sites/example-site/report.html",
+    "history": "sites/example-site/history.json",
+    "knowledge": "sites/example-site/qa_knowledge.json",
+    "workflows": "sites/example-site/workflows.json",
+    "screenshots": "sites/example-site/screenshots",
+    "sidecar": "qa_data.js"
+  },
+  "crawl": {
+    "max_pages": 300,
+    "start_path": "/dashboard",
+    "public_crawl": true,
+    "public_max_pages": 40,
+    "parallel_limit": 10,
+    "retry_threshold": 4.0,
+    "strict_route_dedupe": true,
+    "page_state_depth": 2,
+    "max_state_actions": 18,
+    "max_page_states": 14,
+    "max_form_fields": 10
+  },
+  "routes": {
+    "discovery_seed_routes": [
+      "/",
+      "/dashboard"
+    ],
+    "public_routes": [
+      "/",
+      "/auth/sign-in",
+      "/auth/sign-up",
+      "/auth/forgot-password",
+      "/forgot-password"
+    ]
+  },
+  "scenarios": {
+    "enabled": true,
+    "timeout_seconds": 30
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "qwen2.5",
+    "analysis_model": "qwen2.5",
+    "report_model": "qwen2.5",
+    "report_enabled": true
+  },
+  "auth": {
+    "login_url": "",
+    "login_paths": [
+      "/auth/sign-in",
+      "/login",
+      "/sign-in",
+      "/signin"
+    ],
+    "email_selectors": [
+      "input[type=\"email\"]",
+      "input[name=\"email\"]",
+      "input[id*=\"email\" i]",
+      "input[autocomplete=\"username\"]",
+      "input[placeholder*=\"email\" i]"
+    ],
+    "password_selectors": [
+      "input[type=\"password\"]",
+      "input[name=\"password\"]",
+      "input[id*=\"password\" i]",
+      "input[autocomplete=\"current-password\"]"
+    ],
+    "submit_selectors": [
+      "button[type=\"submit\"]",
+      "input[type=\"submit\"]",
+      "button:has-text(\"Login\")",
+      "button:has-text(\"Log in\")",
+      "button:has-text(\"Sign in\")",
+      "button:has-text(\"Continue\")"
+    ],
+    "success_paths": [
+      "/dashboard",
+      "/project"
+    ],
+    "blocking_paths": [
+      "/auth/",
+      "/login",
+      "/signin",
+      "/sign-in",
+      "/verify",
+      "/otp",
+      "/forgot-password",
+      "/reset-password"
+    ],
+    "password_saved": false,
+    "has_credentials": false
+  },
+  "workspace": {
+    "site_id": "example-site",
+    "site_name": "Example Site",
+    "base_url": "https://example.com",
+    "site_dir": "sites/example-site",
+    "site_config_file": "sites/example-site/site.json",
+    "commands": {
+      "crawl": "python agent.py --site example-site",
+      "resume": "python agent.py --site example-site --resume",
+      "serve": "python serve.py --site example-site",
+      "record_workflow": "python agent.py --site example-site --record-workflow"
+    },
+    "artifacts": {
+      "site_config": "sites/example-site/site.json",
+      "session": "sites/example-site/session.json",
+      "state": "sites/example-site/crawl_state.json",
+      "log": "sites/example-site/crawl_log.json",
+      "report": "sites/example-site/report.html",
+      "history": "sites/example-site/history.json",
+      "knowledge": "sites/example-site/qa_knowledge.json",
+      "workflows": "sites/example-site/workflows.json",
+      "screenshots": "sites/example-site/screenshots",
+      "sidecar": "qa_data.js"
+    }
+  }
+}

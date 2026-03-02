@@ -1,0 +1,4639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Web QA Monitor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:      #060810;
+  --panel:   #0a0d16;
+  --card:    #0f1320;
+  --border:  #161d2e;
+  --border2: #1e2840;
+  --text:    #c2cfe0;
+  --muted:   #3a4d6a;
+  --dim:     #253045;
+  --blue:    #4a8cff;
+  --cyan:    #00d4aa;
+  --green:   #22d37a;
+  --yellow:  #f5c842;
+  --orange:  #ff8c42;
+  --red:     #ff4a6e;
+  --purple:  #9b6dff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.2rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+  gap: 0.8rem;
+}
+.logo {
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  flex-shrink: 0;
+}
+.logo em { color: var(--cyan); font-style: normal; }
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  flex: 1;
+  overflow: hidden;
+}
+.hstat { display: flex; flex-direction: column; align-items: center; gap: 1px; flex-shrink: 0; }
+.hstat .v { color: #fff; font-weight: 500; font-size: 0.82rem; }
+.hstat .k { color: var(--muted); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.hsep { width: 1px; height: 24px; background: var(--border2); flex-shrink: 0; }
+
+.conn-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.dot.live    { background: var(--green);  box-shadow: 0 0 6px var(--green);  animation: blink 2s infinite; }
+.dot.waiting { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: blink 1s infinite; }
+.dot.error   { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── LAYOUT ── */
+main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.active-url-box {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.active-url-box .label {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.active-url-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--blue);
+  word-break: break-all;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 126px;
+  overflow-y: auto;
+}
+.active-url-text::-webkit-scrollbar { width: 3px; }
+.active-url-text::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.active-url-empty { color: var(--muted); }
+.active-url-item {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  padding: 0.4rem 0.45rem;
+  border-radius: 7px;
+  border: 1px solid rgba(74,140,255,.15);
+  background: rgba(74,140,255,.06);
+}
+.active-url-item.current {
+  border-color: rgba(0,212,170,.28);
+  background: linear-gradient(135deg, rgba(74,140,255,.14), rgba(0,212,170,.10));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.active-url-idx {
+  color: var(--cyan);
+  font-size: 0.58rem;
+  min-width: 20px;
+  padding-top: 1px;
+}
+.active-url-main { min-width: 0; flex: 1; }
+.active-url-route {
+  color: #fff;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.active-url-link {
+  color: var(--muted);
+  font-size: 0.55rem;
+  margin-top: 2px;
+  word-break: break-all;
+}
+.active-url-note {
+  color: var(--muted);
+  font-size: 0.54rem;
+  margin-top: 2px;
+}
+.scan-line { margin-top: 0.5rem; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.scan-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 2px; transition: width 0.6s cubic-bezier(.4,0,.2,1); width: 0%; }
+
+/* Coverage mini-bar */
+.coverage-box {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.cov-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.62rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.cov-label { color: var(--muted); width: 90px; flex-shrink: 0; }
+.cov-track { flex: 1; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.cov-fill  { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.4s; }
+.cov-pct   { color: var(--text); width: 34px; text-align: right; }
+
+.workspace-box {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+.workspace-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  font-size: 0.62rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.workspace-name { color: #fff; }
+.workspace-base { color: var(--blue); word-break: break-all; }
+.workspace-dir { color: var(--muted); word-break: break-all; }
+.workspace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+.workspace-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  font-size: 0.59rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.workspace-key { color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.workspace-val {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+.workspace-link {
+  display: block;
+  padding: 0.38rem 0.45rem;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--cyan);
+  text-decoration: none;
+  font-size: 0.58rem;
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(0,212,170,.04);
+}
+.workspace-link:hover {
+  border-color: var(--cyan);
+  color: #fff;
+}
+
+.terminal {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.terminal::-webkit-scrollbar { width: 3px; }
+.terminal::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.log-row {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.2rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  line-height: 1.5;
+  animation: slide-in 0.15s ease;
+}
+@keyframes slide-in { from{opacity:0;transform:translateX(-4px)} to{opacity:1;transform:none} }
+.log-row .ts   { color: var(--dim); flex-shrink: 0; }
+.log-row .msg  { color: var(--text); word-break: break-all; }
+.log-row.info  .msg { color: var(--text); }
+.log-row.go    .msg { color: var(--blue); }
+.log-row.ok    .msg { color: var(--green); }
+.log-row.warn  .msg { color: var(--yellow); background: rgba(245,200,66,.06); }
+.log-row.error .msg { color: var(--red); background: rgba(255,74,110,.07); }
+.log-row.email .msg { color: var(--orange); background: rgba(255,140,66,.08); border-left: 2px solid var(--orange); padding-left: 4px; }
+.log-row.done  .msg { color: var(--cyan); background: rgba(0,212,170,.06); border-left: 2px solid var(--cyan); padding-left: 4px; }
+
+/* ── RIGHT PANEL ── */
+.content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.tabs-bar {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  background: var(--panel);
+  gap: 0.1rem;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+}
+.tab-btn:hover:not(.on) { color: var(--text); }
+.tab-btn.on { color: #fff; border-bottom-color: var(--cyan); }
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.52rem;
+  font-weight: 700;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.panels { flex: 1; overflow: hidden; position: relative; }
+.panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 0.9rem;
+  display: none;
+}
+.panel.on { display: block; }
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── PAGES PANEL ── */
+#pagesPanel { column-count: 2; column-gap: 0.7rem; }
+#pagesPanel:empty::after { content: ''; }
+
+.pcard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 0.65rem;
+  break-inside: avoid;
+  animation: pop-in 0.25s cubic-bezier(.34,1.56,.64,1);
+  transition: border-color 0.2s, transform 0.15s;
+}
+@keyframes pop-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.pcard:hover { border-color: var(--blue); transform: translateY(-1px); }
+.pcard-top { display: flex; align-items: flex-start; gap: 0.55rem; margin-bottom: 0.5rem; }
+.score-ring {
+  flex-shrink: 0; width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.74rem;
+}
+.score-ring.good { background: rgba(34,211,122,.15); color: var(--green); border: 1.5px solid rgba(34,211,122,.3); }
+.score-ring.warn { background: rgba(245,200,66,.15); color: var(--yellow); border: 1.5px solid rgba(245,200,66,.3); }
+.score-ring.bad  { background: rgba(255,74,110,.15);  color: var(--red);    border: 1.5px solid rgba(255,74,110,.3); }
+.pcard-path { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--blue); word-break: break-all; line-height: 1.4; flex: 1; }
+.pcard-meta { display: flex; gap: 0.6rem; font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-bottom: 0.4rem; flex-wrap: wrap; }
+.pcard-summary { font-size: 0.7rem; color: var(--text); line-height: 1.55; opacity: 0.85; }
+.pcard-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.45rem; }
+.tag { font-size: 0.56rem; padding: 2px 5px; border-radius: 3px; font-weight: 500; }
+.tag.bug  { background: rgba(255,74,110,.15);  color: var(--red); }
+.tag.slow { background: rgba(255,140,66,.15);  color: var(--orange); }
+.tag.ux   { background: rgba(155,109,255,.15); color: var(--purple); }
+.tag.ok   { background: rgba(34,211,122,.12);  color: var(--green); }
+.tag.api  { background: rgba(155,109,255,.15); color: #b89dff; }
+
+/* ── HEATMAP ── */
+#heatmapPanel.on { display: flex; flex-direction: column; gap: 0.8rem; }
+.hm-legend { display: flex; align-items: center; gap: 0.8rem; font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+.hm-legend-bar { flex: 1; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #22d37a, #f5c842, #ff4a6e); max-width: 200px; }
+#treemap {
+  height: 380px;
+  flex-shrink: 0;
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  contain: strict;
+  isolation: isolate;
+}
+.tm-cell {
+  position: absolute;
+  border: 1px solid var(--bg);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: default;
+  transition: filter 0.15s;
+  padding: 3px;
+  z-index: 1;
+}
+.tm-cell:hover { filter: brightness(1.25); z-index: 2; }
+.tm-label { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: rgba(0,0,0,0.85); text-align: center; word-break: break-all; line-height: 1.3; pointer-events: none; }
+.tm-count { font-size: 0.6rem; color: rgba(0,0,0,0.6); pointer-events: none; }
+.hm-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.35rem; }
+.hm-row { display: flex; align-items: center; gap: 0.45rem; background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 0.4rem 0.6rem; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; }
+.hm-bar { height: 4px; border-radius: 2px; min-width: 4px; flex-shrink: 0; }
+.hm-path { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-visits { color: var(--muted); flex-shrink: 0; }
+
+/* ── ISSUES ── */
+.issue-card { background: var(--card); border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; animation: pop-in 0.2s ease; margin-bottom: 0.45rem; }
+.issue-card-header { display: flex; align-items: center; gap: 0.55rem; padding: 0.55rem 0.8rem; background: #131926; border-bottom: 1px solid var(--border2); }
+.issue-type-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.issue-path { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--blue); flex: 1; }
+.issue-count { font-size: 0.6rem; color: var(--muted); }
+.issue-items { padding: 0.55rem 0.8rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.issue-item { display: flex; gap: 0.45rem; align-items: flex-start; font-size: 0.7rem; line-height: 1.55; }
+.issue-icon { flex-shrink: 0; font-size: 0.7rem; margin-top: 2px; }
+.issue-text { flex: 1; word-break: break-word; }
+.issue-text.cat-bug  { color: #ff6b8a; }
+.issue-text.cat-link { color: #ffaa6b; }
+.issue-text.cat-perf { color: #f5d060; }
+.issue-text.cat-ux   { color: #b89dff; }
+
+/* ── INTERACTIONS PANEL ── */
+.int-panel-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+.int-summary-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem;
+}
+.int-summary-card h4 {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.int-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.22rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.66rem;
+}
+.int-row:last-child { border-bottom: none; }
+.int-route { font-family: 'JetBrains Mono', monospace; color: var(--blue); flex-shrink: 0; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.int-action { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.int-badge { font-size: 0.58rem; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.int-badge.flaky     { background: rgba(245,200,66,.2); color: var(--yellow); }
+.int-badge.no-change { background: rgba(58,77,106,.3); color: var(--muted); }
+.int-badge.reliable  { background: rgba(34,211,122,.15); color: var(--green); }
+.int-badge.fail      { background: rgba(255,74,110,.15); color: var(--red); }
+
+/* Full interaction table */
+.int-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.int-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+.int-table th { background: #0a0d16; color: var(--muted); text-transform: uppercase; font-size: 0.58rem; letter-spacing: 0.06em; padding: 0.4rem 0.6rem; text-align: left; white-space: nowrap; }
+.int-table td { padding: 0.32rem 0.6rem; border-bottom: 1px solid var(--border); word-break: break-word; }
+.int-table tr:last-child td { border-bottom: none; }
+.int-table tr:hover td { background: #0a0d16; }
+.rel-bar { display: flex; align-items: center; gap: 0.4rem; }
+.rel-fill { height: 5px; border-radius: 2px; background: var(--green); }
+
+/* ── WORKFLOWS PANEL ── */
+.wf-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 0.6rem; animation: pop-in 0.2s ease; }
+.wf-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; background: #131926; border-bottom: 1px solid var(--border2); }
+.wf-name { font-weight: 600; color: #fff; font-size: 0.75rem; flex: 1; }
+.wf-status { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.wf-status.pass { background: rgba(34,211,122,.2); color: var(--green); }
+.wf-status.fail { background: rgba(255,74,110,.2); color: var(--red); }
+.wf-status.running { background: rgba(74,140,255,.2); color: var(--blue); animation: blink 1s infinite; }
+.wf-duration { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+.wf-steps { padding: 0.55rem 0.8rem; display: flex; flex-direction: column; gap: 0.22rem; }
+.wf-step { display: flex; align-items: center; gap: 0.5rem; font-size: 0.66rem; }
+.wf-step-icon { width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; flex-shrink: 0; }
+.wf-step-icon.pass { background: rgba(34,211,122,.2); color: var(--green); }
+.wf-step-icon.fail { background: rgba(255,74,110,.2); color: var(--red); }
+.wf-step-icon.skip { background: rgba(58,77,106,.3); color: var(--muted); }
+.wf-step-desc { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-step-error { color: var(--red); font-size: 0.6rem; }
+
+/* ── HISTORY PANEL ── */
+.history-delta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.delta-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  min-width: 120px;
+  flex: 1;
+}
+.delta-card .dv { font-size: 1.4rem; font-weight: 700; }
+.delta-card .dk { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.delta-card .positive { color: var(--green); }
+.delta-card .negative { color: var(--red); }
+.delta-card .neutral  { color: var(--text); }
+
+.history-chart-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.history-chart-wrap h4 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.6rem; }
+.sparkline-row { display: flex; align-items: flex-end; gap: 3px; height: 48px; }
+.spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 6px; transition: opacity 0.2s; cursor: default; position: relative; }
+.spark-bar:hover { opacity: 0.8; }
+.spark-bar::after { content: attr(data-tip); position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: var(--panel); color: var(--text); font-size: 0.58rem; padding: 2px 6px; border-radius: 3px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+.spark-bar:hover::after { opacity: 1; }
+
+.history-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
+.history-table th { background: #0a0d16; color: var(--muted); text-transform: uppercase; font-size: 0.58rem; letter-spacing: 0.06em; padding: 0.4rem 0.7rem; text-align: left; }
+.history-table td { padding: 0.35rem 0.7rem; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; }
+.history-table tr:last-child td { border-bottom: none; }
+
+/* ── EMPTY STATES ── */
+.empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 60%; gap: 0.4rem; color: var(--muted); font-size: 0.75rem; text-align: center;
+}
+.empty-icon { font-size: 2rem; opacity: 0.35; margin-bottom: 0.25rem; }
+
+/* delta arrows */
+.arrow-up::before   { content: "▲ "; }
+.arrow-down::before { content: "▼ "; }
+.arrow-flat::before { content: "— "; }
+
+/* ── GRAPH PANEL ─────────────────────────────────────────────────────────── */
+#graphPanel {
+  padding: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+#graphPanel.on {
+  display: flex;
+}
+
+#graphToolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.graph-stat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.graph-toggle {
+  font-size: 0.65rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.graph-toggle input { accent-color: var(--cyan); cursor: pointer; }
+.graph-select,
+.graph-search {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 0.62rem;
+  padding: 3px 7px;
+  font-family: 'Outfit', sans-serif;
+}
+.graph-search {
+  min-width: 150px;
+}
+.graph-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+.graph-range {
+  accent-color: var(--cyan);
+  width: 92px;
+  cursor: pointer;
+}
+.graph-btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.graph-btn:hover { border-color: var(--blue); color: #fff; }
+
+#graphCanvas {
+  flex: 1;
+  width: 100%;
+  display: block;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(74,140,255,.06), transparent 30%),
+    radial-gradient(circle at 78% 24%, rgba(0,212,170,.05), transparent 28%),
+    linear-gradient(180deg, rgba(10,13,22,.98), rgba(6,8,16,.98));
+  cursor: grab;
+}
+#graphCanvas:active { cursor: grabbing; }
+
+#graphTooltip {
+  position: absolute;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  max-width: 280px;
+  z-index: 100;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+#graphTooltip.visible { opacity: 1; }
+
+
+/* ── SCREENSHOTS PANEL ─────────────────────────────────────────────── */
+#shotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: .8rem;
+}
+.shot-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: pop-in .2s ease;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.shot-card:hover { border-color: var(--blue); }
+.shot-img {
+  width: 100%; height: 160px;
+  object-fit: cover; object-position: top;
+  display: block;
+  background: var(--border);
+}
+.shot-meta {
+  padding: .45rem .6rem;
+  font-size: .62rem;
+  color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: .4rem;
+}
+.shot-meta .shot-route {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--blue);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1;
+}
+.shot-score { flex-shrink: 0; font-weight: 600; }
+/* Lightbox */
+#shotLightbox {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.85); z-index: 999;
+  align-items: center; justify-content: center; flex-direction: column;
+  gap: 1rem;
+}
+#shotLightbox.open { display: flex; }
+#shotLightboxImg { max-width: 92vw; max-height: 82vh; border-radius: 8px; box-shadow: 0 0 40px #000; }
+#shotLightboxClose {
+  position: absolute; top: 1rem; right: 1.5rem;
+  font-size: 1.4rem; color: #fff; cursor: pointer; opacity: .7;
+  background: none; border: none;
+}
+#shotLightboxClose:hover { opacity: 1; }
+#shotLightboxCaption { color: var(--muted); font-size: .7rem; font-family: 'JetBrains Mono', monospace; }
+
+/* ── APIS PANEL ────────────────────────────────────────────────────── */
+.api-search {
+  background: var(--card); border: 1px solid var(--border2);
+  color: var(--text); border-radius: 5px; padding: .35rem .6rem;
+  font-family: 'Outfit', sans-serif; font-size: .7rem; flex: 1; min-width: 180px;
+  max-width: 320px;
+}
+.api-search:focus { outline: none; border-color: var(--blue); }
+.int-table { width:100%; border-collapse:collapse; font-size:.67rem; }
+.int-table th { padding:.5rem .7rem; text-align:left; color:var(--muted); font-weight:500;
+                border-bottom:1px solid var(--border); position:sticky; top:0;
+                background:var(--card); }
+.int-table td { padding:.45rem .7rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+.int-table tbody tr:hover { background:var(--border); }
+.method-badge {
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:.58rem;
+  padding:1px 5px; border-radius:3px; font-weight:600;
+}
+.method-GET    { background:#22d37a22; color:#22d37a; }
+.method-POST   { background:#4a8cff22; color:#4a8cff; }
+.method-PUT    { background:#f5c84222; color:#f5c842; }
+.method-PATCH  { background:#ff8c4222; color:#ff8c42; }
+.method-DELETE { background:#ff4a6e22; color:#ff4a6e; }
+.method-OTHER  { background:#9b6dff22; color:#9b6dff; }
+.status-ok   { color: var(--green); font-family:'JetBrains Mono',monospace; }
+.status-fail { color: var(--red);   font-family:'JetBrains Mono',monospace; }
+.api-endpoint { font-family:'JetBrains Mono',monospace; color:var(--text); word-break:break-all; }
+
+/* ── KNOWLEDGE PANEL ────────────────────────────────────────────────── */
+.kb-stat-card {
+  background: var(--card); border:1px solid var(--border); border-radius:8px;
+  padding:.6rem 1rem; text-align:center; min-width:90px;
+}
+.kb-stat-card .kb-stat-v { font-size:1.4rem; font-weight:700; color:var(--cyan); }
+.kb-stat-card .kb-stat-k { font-size:.58rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:.15rem; }
+.kb-route-row {
+  background:var(--card); border:1px solid var(--border); border-radius:7px;
+  padding:.5rem .8rem; margin-bottom:.4rem;
+  display:grid; grid-template-columns:1fr auto auto auto auto;
+  align-items:center; gap:.6rem; font-size:.65rem;
+}
+.kb-route-path { font-family:'JetBrains Mono',monospace; color:var(--blue); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.kb-badge { background:var(--border2); border-radius:4px; padding:2px 6px; color:var(--muted); }
+
+
+/* ── FOCUS PANEL ─────────────────────────────────────────────────────── */
+.fa2-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: .5rem;
+  overflow: hidden;
+  animation: pop-in .2s ease;
+  transition: border-color .15s;
+}
+.fa2-card:hover { border-color: var(--border2); }
+.fa2-hd {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;
+  padding: .65rem .9rem; cursor: pointer; user-select: none;
+}
+.fa2-rank { font-size: .6rem; color: var(--muted); font-weight: 700;
+             min-width: 22px; font-family: 'JetBrains Mono', monospace; }
+.fa2-route { font-size: .74rem; color: var(--blue);
+              font-family: 'JetBrains Mono', monospace; }
+.fa2-prio  { font-size: .6rem; }
+.fa2-score { font-size: .82rem; font-weight: 700;
+              font-family: 'JetBrains Mono', monospace; }
+.fa2-lbl   { font-size: .6rem; color: var(--muted); }
+.fa2-eff   { font-size: .58rem; background: var(--panel); border: 1px solid var(--border);
+              border-radius: 4px; padding: 2px 7px; color: var(--muted); }
+.fa2-chev  { font-size: .58rem; color: var(--muted);
+              transition: transform .2s; margin-left: .3rem; flex-shrink: 0; }
+.fa2-chev.open { transform: rotate(90deg); }
+.fa2-badge { font-size: .58rem; border-radius: 3px; padding: 1px 5px; font-weight: 600; }
+.fa2-bug    { background: #ff4a6e22; color: #ff4a6e; }
+.fa2-broken { background: #ff8c4222; color: #ff8c42; }
+.fa2-api    { background: #9b6dff22; color: #9b6dff; }
+.fa2-perf   { background: #f5c84222; color: #f5c842; }
+.fa2-vis    { background: #00d4aa22; color: #00d4aa; }
+.fa2-bd {
+  border-top: 1px solid var(--border);
+  padding: .8rem .9rem 1rem;
+}
+.fa2-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+}
+@media (max-width: 600px) { .fa2-cols { grid-template-columns: 1fr; } }
+.fa2-sect-title {
+  font-size: .58rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-weight: 600; margin-bottom: .35rem;
+}
+.fa2-recs { padding-left: 1rem; font-size: .75rem; color: var(--text); }
+.fa2-recs li { margin-bottom: .25rem; line-height: 1.55; }
+.fa2-dg    { margin-bottom: .5rem; }
+.fa2-dtitle { font-size: .6rem; color: var(--blue); margin-bottom: .2rem; }
+.fa2-di    { font-size: .7rem; color: #8a9bb5; padding: .05rem 0;
+              word-break: break-word; line-height: 1.5; }
+
+/* ── TREE PANEL ──────────────────────────────────────────────────────── */
+.tree2-row {
+  display: flex; align-items: center; line-height: 2;
+  padding: 0 .2rem; border-radius: 4px;
+  transition: background .12s, box-shadow .12s;
+}
+.tree2-row:hover { background: var(--panel); }
+.tree2-row.active {
+  background: linear-gradient(90deg, rgba(74,140,255,.20), rgba(0,212,170,.08));
+  box-shadow: inset 0 0 0 1px rgba(74,140,255,.24);
+}
+.tree2-row.active .tree2-seg { color: #fff; font-weight: 700; }
+.tree2-row.ancestor {
+  background: rgba(74,140,255,.08);
+  box-shadow: inset 0 0 0 1px rgba(74,140,255,.10);
+}
+.tree2-conn { color: var(--dim); white-space: pre; font-size: .72rem; flex-shrink: 0; }
+.tree2-dot  {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; flex-shrink: 0; margin: 0 5px;
+}
+.tree2-seg  { color: var(--text); font-size: .72rem; }
+.tree2-sc   { font-size: .62rem; font-weight: 700; margin-left: 6px; flex-shrink: 0; }
+.tree2-b    { font-size: .56rem; border-radius: 3px; padding: 1px 4px; margin-left: 3px; flex-shrink: 0; }
+.tree2-live {
+  margin-left: auto;
+  font-size: .53rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  border-radius: 999px;
+  padding: 1px 6px;
+  background: rgba(0,212,170,.14);
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+.planner-wrap {
+  display: grid;
+  grid-template-columns: minmax(240px, .9fr) 1.2fr;
+  gap: .9rem;
+  padding: .8rem;
+}
+.planner-panel {
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .7rem;
+}
+.planner-head {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .55rem;
+}
+.planner-title {
+  font-size: .63rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+}
+.planner-sub {
+  font-size: .56rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.planner-empty {
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.6;
+  padding: .4rem 0;
+}
+.planner-card {
+  border: 1px solid rgba(74,140,255,.16);
+  background: linear-gradient(135deg, rgba(74,140,255,.08), rgba(255,255,255,.02));
+  border-radius: 10px;
+  padding: .55rem .6rem;
+  margin-bottom: .45rem;
+}
+.planner-card.selected {
+  border-color: rgba(0,212,170,.26);
+  background: linear-gradient(135deg, rgba(0,212,170,.10), rgba(74,140,255,.08));
+}
+.planner-card.best {
+  border-color: rgba(34,211,122,.24);
+  box-shadow: inset 0 0 0 1px rgba(34,211,122,.06);
+}
+.planner-card.exhausted {
+  opacity: .75;
+  border-color: rgba(255,74,110,.18);
+}
+.planner-card:last-child { margin-bottom: 0; }
+.planner-route {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .66rem;
+  color: #fff;
+  word-break: break-word;
+}
+.planner-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .54rem;
+  color: var(--muted);
+  margin-top: 3px;
+  word-break: break-all;
+}
+.planner-meta {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+  margin-top: .45rem;
+}
+.planner-badge {
+  font-size: .53rem;
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+}
+.planner-badge.cost { color: var(--yellow); }
+.planner-badge.score { color: var(--green); }
+.planner-badge.pending { color: var(--blue); }
+.planner-rank {
+  color: var(--cyan);
+  font-size: .56rem;
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: .35rem;
+}
+.planner-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .55rem;
+  align-items: start;
+  margin-bottom: .55rem;
+}
+.planner-step:last-child { margin-bottom: 0; }
+.planner-linebox { min-width: 0; }
+.planner-line {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(74,140,255,.12), rgba(255,255,255,.02));
+  border-radius: 999px;
+  overflow: hidden;
+  margin: .4rem 0 .45rem;
+}
+.planner-line-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+}
+.planner-caption {
+  padding: 0 .8rem .75rem;
+  color: var(--muted);
+  font-size: .58rem;
+  line-height: 1.6;
+}
+.planner-map-shell {
+  margin-bottom: .9rem;
+}
+.planner-flow-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: .7rem;
+}
+.planner-flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  font-size: .56rem;
+  color: var(--text);
+}
+.planner-flow-chip strong {
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+  font-weight: 600;
+}
+.planner-flow-chip span {
+  color: var(--muted);
+}
+.planner-flow-chip.start strong { color: var(--cyan); }
+.planner-flow-chip.relax strong { color: var(--blue); }
+.planner-flow-chip.pick strong  { color: var(--green); }
+.planner-map-wrap {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top left, rgba(0,212,170,.10), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(74,140,255,.12), transparent 42%),
+    linear-gradient(180deg, rgba(10,13,22,.94), rgba(15,19,32,.98));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.planner-map-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(180deg, rgba(255,255,255,.8), transparent 95%);
+  pointer-events: none;
+}
+.planner-axis {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: .55rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: .54rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .04em;
+  pointer-events: none;
+}
+.planner-svg {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: block;
+  min-height: 280px;
+}
+.planner-road-base {
+  fill: none;
+  stroke-linecap: round;
+}
+.planner-road-flow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 12 12;
+  animation: planner-road-flow 11s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(74,140,255,.16));
+}
+.planner-road-flow.selected {
+  stroke-dasharray: 16 10;
+  animation-duration: 6s;
+}
+.planner-road-flow.best {
+  stroke-dasharray: 14 11;
+  animation-duration: 8s;
+}
+.planner-road-flow.exhausted {
+  stroke-dasharray: 7 14;
+  animation-duration: 14s;
+  opacity: .5;
+}
+.planner-checkpoint {
+  stroke: rgba(6,8,16,.8);
+  stroke-width: 2;
+}
+.planner-node-dot {
+  stroke: rgba(6,8,16,.85);
+  stroke-width: 4;
+  filter: drop-shadow(0 0 12px rgba(74,140,255,.18));
+}
+.planner-node-dot.selected,
+.planner-node-dot.best {
+  animation: planner-node-pulse 2.4s ease-in-out infinite;
+}
+.planner-node-dot.exhausted {
+  opacity: .68;
+}
+.planner-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: .65rem;
+}
+.planner-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .55rem;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: .22rem .5rem;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.05);
+}
+.planner-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.planner-mini-table {
+  margin-top: .65rem;
+  display: grid;
+  gap: .35rem;
+}
+.planner-mini-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: .55rem;
+  align-items: center;
+  padding: .45rem .6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.04);
+  background: rgba(255,255,255,.02);
+}
+.planner-mini-row.active {
+  border-color: rgba(0,212,170,.18);
+  background: linear-gradient(90deg, rgba(0,212,170,.08), rgba(74,140,255,.05));
+}
+.planner-mini-rank {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .56rem;
+  color: var(--cyan);
+}
+.planner-mini-route {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .6rem;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.planner-mini-dist {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .56rem;
+  color: var(--yellow);
+}
+.planner-mini-state {
+  font-size: .53rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+@keyframes planner-road-flow {
+  to { stroke-dashoffset: -220; }
+}
+@keyframes planner-node-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(0,212,170,.18)); }
+  50% { filter: drop-shadow(0 0 18px rgba(0,212,170,.36)); }
+}
+@media (max-width: 900px) {
+  .planner-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+<!-- qa_data.js is written by agent.py on completion.
+     It injects window.__QA_STATE__ and window.__QA_HISTORY__ so the
+     dashboard works when opened directly as a file:// without any server. -->
+<script src="qa_data.js" onerror="void 0"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">Open<em>Web</em> QA</div>
+
+  <div class="header-stats">
+    <div class="hstat"><span class="v" id="hPages">0</span><span class="k">Pages</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hQueue">0</span><span class="k">Queue</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hScore" style="color:var(--cyan)">—</span><span class="k">Avg Score</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hBugs" style="color:var(--red)">0</span><span class="k">Bugs</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hSlow" style="color:var(--orange)">0</span><span class="k">Slow</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hApiFail" style="color:var(--purple)">0</span><span class="k">API ❌</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hRoutes">0</span><span class="k">Routes</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hActions" style="color:var(--cyan)">0</span><span class="k">Actions</span></div>
+    <div class="hsep"></div>
+    <div class="hstat"><span class="v" id="hWorkflows">0/0</span><span class="k">Workflows</span></div>
+  </div>
+
+  <button onclick="clearAllData()" title="Clear all displayed data for a fresh start"
+    style="background:none;border:1px solid var(--border2);color:var(--muted);border-radius:5px;
+           padding:3px 10px;font-size:.62rem;cursor:pointer;font-family:'Outfit',sans-serif;
+           flex-shrink:0;transition:border-color .15s,color .15s;letter-spacing:.04em"
+    onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+    onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">
+    ✕ Clear data
+  </button>
+  <div class="conn-badge">
+    <div class="dot" id="connDot"></div>
+    <span id="connText">Connecting…</span>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="active-url-box">
+      <div class="label">Now scanning</div>
+      <div class="active-url-text" id="activeUrl">—</div>
+      <div class="scan-line"><div class="scan-fill" id="scanFill"></div></div>
+    </div>
+
+    <!-- Coverage KPIs -->
+    <div class="coverage-box">
+      <div class="cov-row">
+        <span class="cov-label">Pages w/ UI</span>
+        <div class="cov-track"><div class="cov-fill" id="covPagesBar" style="width:0%"></div></div>
+        <span class="cov-pct" id="covPagesPct">0%</span>
+      </div>
+      <div class="cov-row">
+        <span class="cov-label">Workflows</span>
+        <div class="cov-track"><div class="cov-fill" id="covWfBar" style="width:0%;background:var(--green)"></div></div>
+        <span class="cov-pct" id="covWfPct">0%</span>
+      </div>
+      <div class="cov-row">
+        <span class="cov-label">Unique Actions</span>
+        <div class="cov-track"><div class="cov-fill" id="covActBar" style="width:0%;background:var(--purple)"></div></div>
+        <span class="cov-pct" id="covActPct">0</span>
+      </div>
+    </div>
+
+    <div class="workspace-box">
+      <div class="label">Workspace</div>
+      <div class="workspace-meta" id="workspaceMeta">
+        <div class="workspace-name">No site profile loaded</div>
+        <div class="workspace-dir">Waiting for agent...</div>
+      </div>
+      <div class="workspace-list" id="workspaceCommands"></div>
+      <div class="workspace-links" id="workspaceLinks"></div>
+    </div>
+
+    <div class="terminal" id="terminal">
+      <div class="empty"><div class="empty-icon">⬡</div>Waiting for agent…</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="content">
+    <div class="tabs-bar">
+      <div class="tab-btn on"  onclick="showTab('pages',        this)">Pages</div>
+      <div class="tab-btn"     onclick="showTab('heatmap',      this)">Heatmap</div>
+      <div class="tab-btn"     onclick="showTab('issues',       this)">Issues <span class="tab-badge" id="issueBadge" style="display:none">0</span></div>
+      <div class="tab-btn"     onclick="showTab('interactions', this)">Actions <span class="tab-badge" id="actionBadge" style="display:none">0</span></div>
+      <div class="tab-btn"     onclick="showTab('workflows',    this)">Workflows <span class="tab-badge" id="wfBadge" style="display:none">0</span></div>
+      <div class="tab-btn"     onclick="showTab('history',      this)">History</div>
+      <div class="tab-btn"     onclick="showTab('graph',        this)">Route Graph</div>
+      <div class="tab-btn"     onclick="showTab('screenshots',  this)">Screenshots</div>
+      <div class="tab-btn"     onclick="showTab('apis',         this)">APIs <span class="tab-badge" id="apiBadge" style="display:none">0</span></div>
+      <div class="tab-btn"     onclick="showTab('knowledge',    this)">Knowledge</div>
+      <div class="tab-btn"     onclick="showTab('focus',        this)">Focus Areas <span class="tab-badge" id="focusBadge" style="display:none">0</span></div>
+      <div class="tab-btn"     onclick="showTab('tree',         this)">Route Tree</div>
+      <div class="tab-btn"     onclick="showTab('explorer',     this)">Explorer <span class="tab-badge" id="explorerBadge" style="display:none">0</span></div>
+    </div>
+
+    <div class="panels">
+
+      <!-- PAGES -->
+      <div class="panel on" id="pagesPanel">
+        <div class="empty" id="pagesEmpty"><div class="empty-icon">🕸</div>Pages appear as the agent crawls…</div>
+      </div>
+
+      <!-- HEATMAP -->
+      <div class="panel" id="heatmapPanel">
+        <div class="hm-legend">
+          <span>Low</span>
+          <div class="hm-legend-bar"></div>
+          <span>High activity</span>
+        </div>
+        <div id="treemap"><div class="empty" style="height:100%"><div class="empty-icon">🗺</div>Heatmap builds as pages are crawled…</div></div>
+        <div class="hm-list" id="hmList"></div>
+      </div>
+
+      <!-- ISSUES -->
+      <div class="panel" id="issuesPanel">
+        <div class="empty" id="issuesEmpty"><div class="empty-icon">✅</div>No issues found yet…</div>
+      </div>
+
+      <!-- INTERACTIONS -->
+      <div class="panel" id="interactionsPanel">
+        <div class="empty" id="intEmpty"><div class="empty-icon">🖱</div>Interaction data appears after crawling…</div>
+      </div>
+
+      <!-- WORKFLOWS -->
+      <div class="panel" id="workflowsPanel">
+        <div class="empty" id="wfEmpty"><div class="empty-icon">⚙️</div>Workflow scenarios run after crawl completes…</div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="panel" id="historyPanel">
+        <div class="empty" id="histEmpty"><div class="empty-icon">📈</div>Run history loads from the current site history…</div>
+      </div>
+
+      <!-- GRAPH -->
+      <div class="panel" id="graphPanel">
+        <div id="graphToolbar">
+          <span id="graphNodeCount" class="graph-stat">0 routes · 0 states</span>
+          <span id="graphEdgeCount" class="graph-stat">0 links</span>
+          <span id="graphElemCount" class="graph-stat" style="color:var(--cyan)">0 elements</span>
+          <span id="graphDepthInfo" class="graph-stat">depth —</span>
+          <div style="width:1px;height:18px;background:var(--border2);flex-shrink:0"></div>
+          <label class="graph-toggle"><input type="checkbox" id="graphLabels" checked> Labels</label>
+          <label class="graph-toggle"><input type="checkbox" id="graphPhysics" checked> Physics</label>
+          <label class="graph-toggle"><input type="checkbox" id="graphShowLinks" checked> Links</label>
+          <label class="graph-toggle"><input type="checkbox" id="graphShowElems" checked> <span style="color:var(--cyan)">Elements</span></label>
+          <div style="width:1px;height:18px;background:var(--border2);flex-shrink:0"></div>
+          <select id="graphNodeFilter" class="graph-select">
+            <option value="">All nodes</option>
+            <option value="routes">Routes only</option>
+            <option value="states">States only</option>
+            <option value="active">Live only</option>
+            <option value="problems">Problems only</option>
+            <option value="content">Hide shared chrome</option>
+          </select>
+          <select id="graphLinkFilter" class="graph-select">
+            <option value="all">All links</option>
+            <option value="structure">Structure only</option>
+            <option value="journey">Journey links</option>
+            <option value="state">State links</option>
+            <option value="elements">Element links</option>
+            <option value="crosslink">Cross-links only</option>
+            <option value="none">Disconnected</option>
+          </select>
+          <select id="graphElemFilter" class="graph-select">
+            <option value="">All outcomes</option>
+            <option value="new">🟢 New (first seen)</option>
+            <option value="navigation">🔵 Navigation</option>
+            <option value="modal_open">🟣 Modal</option>
+            <option value="dom_mutation">🟡 DOM change</option>
+            <option value="broken">🔴 Broken</option>
+            <option value="api_error">🟠 API error</option>
+            <option value="timeout">🟥 Timeout</option>
+            <option value="no_change">⬜ No change</option>
+            <option value="skip">⏭ Skipped</option>
+          </select>
+          <input id="graphSearch" class="graph-search" placeholder="Filter route, state, or element…">
+          <label class="graph-inline">
+            <span>Spacing</span>
+            <input type="range" id="graphSpacing" class="graph-range" min="85" max="190" step="5" value="120">
+            <span id="graphSpacingValue">120%</span>
+          </label>
+          <button class="graph-btn" onclick="graphFit()">Fit Visible</button>
+          <button class="graph-btn" onclick="graphReset()">Reset View</button>
+        </div>
+        <canvas id="graphCanvas"></canvas>
+        <div id="graphTooltip"></div>
+      </div>
+
+      <!-- SCREENSHOTS -->
+      <div class="panel" id="screenshotsPanel">
+        <div class="empty" id="shotEmpty"><div class="empty-icon">📸</div>Screenshots appear as pages are crawled…</div>
+        <div id="shotGrid"></div>
+      </div>
+
+      <!-- APIS -->
+      <div class="panel" id="apisPanel">
+        <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap">
+          <input id="apiSearch" class="api-search" placeholder="Filter endpoint…" oninput="renderApis()">
+          <select id="apiMethodFilter" class="api-search" style="width:auto;flex:0" onchange="renderApis()">
+            <option value="">All methods</option>
+            <option>GET</option><option>POST</option><option>PUT</option>
+            <option>PATCH</option><option>DELETE</option>
+          </select>
+          <select id="apiStatusFilter" class="api-search" style="width:auto;flex:0" onchange="renderApis()">
+            <option value="">All statuses</option>
+            <option value="ok">OK (2xx)</option>
+            <option value="fail">Failed (4xx/5xx)</option>
+          </select>
+        </div>
+        <div class="empty" id="apiEmpty"><div class="empty-icon">🔌</div>API calls appear as pages are crawled…</div>
+        <div id="apiTableWrap" class="int-table-wrap" style="display:none">
+          <table class="int-table">
+            <thead><tr>
+              <th>Method</th><th>Endpoint</th><th>Status</th>
+              <th>Latency</th><th>Calls</th><th>Failures</th>
+            </tr></thead>
+            <tbody id="apiTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KNOWLEDGE -->
+      <div class="panel" id="knowledgePanel">
+        <div class="empty" id="kbEmpty"><div class="empty-icon">🧠</div>Knowledge base builds after each run — run agent.py to populate.</div>
+        <div id="kbContent" style="display:none">
+          <div id="kbStats" style="display:flex;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap"></div>
+          <h3 style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Routes by Element Coverage</h3>
+          <div id="kbRoutes"></div>
+        </div>
+      </div>
+
+
+      <!-- EXPLORER INTELLIGENCE -->
+      <div class="panel" id="explorerPanel">
+        <div id="explorerEmpty" class="empty"><div class="empty-icon">🧭</div>Explorer data appears as the agent crawls…</div>
+        <div id="explorerContent" style="display:none">
+
+          <!-- KPI strip -->
+          <div id="explorerKpis" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+            <div style="padding:.55rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">🗺 Live Route Planner</span>
+              <span style="font-size:.58rem;color:var(--muted);margin-left:auto">lowest exploration cost wins next</span>
+            </div>
+            <div id="frontierPlanner"></div>
+          </div>
+
+          <!-- Two-column layout -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1rem">
+
+            <!-- Frontier queue -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="padding:.55rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+                <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">🧭 Dijkstra Frontier</span>
+                <span style="font-size:.58rem;color:var(--muted);margin-left:auto">highest score = crawled first</span>
+              </div>
+              <div id="frontierList" style="max-height:260px;overflow-y:auto;padding:.4rem"></div>
+            </div>
+
+            <!-- Route novelty map -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="padding:.55rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+                <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">📊 Route Novelty</span>
+                <span style="font-size:.58rem;color:var(--muted);margin-left:auto">10 = brand new, 0 = exhausted</span>
+              </div>
+              <div id="noveltyList" style="max-height:260px;overflow-y:auto;padding:.4rem"></div>
+            </div>
+          </div>
+
+          <!-- Per-page discovery log -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+            <div style="padding:.55rem .8rem;border-bottom:1px solid var(--border)">
+              <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600">📋 Page Discovery Log</span>
+            </div>
+            <div class="int-table-wrap" style="border:none;border-radius:0">
+              <table class="int-table">
+                <thead><tr>
+                  <th>Route</th><th>Score</th><th>New El.</th><th>Skipped</th>
+                  <th>Links →</th><th>Exhausted</th><th>Status</th>
+                </tr></thead>
+                <tbody id="explorerLogBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOCUS AREAS -->
+      <div class="panel" id="focusPanel">
+        <div class="empty" id="focusEmpty"><div class="empty-icon">🎯</div>Focus areas appear after pages are analysed…</div>
+        <div id="focusHeader" style="display:none">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:.8rem;line-height:1.6" id="focusExecText"></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem">
+            <select id="focusFilter" class="api-search" style="width:auto;flex:0" onchange="renderFocus()">
+              <option value="">All routes</option>
+              <option value="critical">Critical only (&lt;4)</option>
+              <option value="warning">Needs work (4–7)</option>
+              <option value="good">Good (7+)</option>
+            </select>
+            <select id="focusSort" class="api-search" style="width:auto;flex:0" onchange="renderFocus()">
+              <option value="priority">Sort: Worst first</option>
+              <option value="bugs">Sort: Most bugs</option>
+              <option value="broken">Sort: Most broken</option>
+              <option value="alpha">Sort: Alphabetical</option>
+            </select>
+          </div>
+        </div>
+        <div id="focusCards"></div>
+      </div>
+
+      <!-- ROUTE TREE -->
+      <div class="panel" id="treePanel">
+        <div class="empty" id="treeEmpty"><div class="empty-icon">🌿</div>Route tree appears after pages are crawled…</div>
+        <div id="treeToolbar" style="display:none;margin-bottom:.7rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <span style="font-size:.65rem;color:var(--muted)">Branch health at a glance</span>
+          <span style="margin-left:auto;display:flex;gap:.8rem;font-size:.6rem;color:var(--muted);align-items:center">
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22d37a;margin-right:3px;vertical-align:middle"></span>Good (7+)</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f5c842;margin-right:3px;vertical-align:middle"></span>Fair (4–7)</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4a6e;margin-right:3px;vertical-align:middle"></span>Critical (&lt;4)</span>
+          </span>
+        </div>
+        <div id="treeBox" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;overflow-x:auto"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────
+const WS = 'ws://localhost:8765';
+let pages = [], bugs = 0, slow = 0, apiFails = 0, scores = [], urlVisits = {};
+let issueCount = 0, interactionStats = [], workflowResults = [], runHistory = [];
+let coverageData = { pct_pages_with_interactions: 0, unique_actions_count: 0, pct_critical_workflows: 0 };
+let flakyActions = [], noChangeActions = [];
+let workspaceInfo = null;
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function showTab(id, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(id + 'Panel').classList.add('on');
+  if (id === 'heatmap')      requestAnimationFrame(renderTreemap); // wait for layout before reading offsetWidth
+  if (id === 'interactions') renderInteractions();
+  if (id === 'history')      renderHistory();
+  if (id === 'graph')        requestAnimationFrame(() => { Graph.init(); Graph.resize(); });
+  if (id === 'screenshots')  renderShots();
+  if (id === 'apis')         renderApis();
+  if (id === 'knowledge')    { loadKnowledge(); renderKnowledge(); }
+  if (id === 'focus')        renderFocus();
+  if (id === 'tree')         renderTree();
+  if (id === 'explorer')     renderExplorer();
+}
+
+// ── Connection status ─────────────────────────────────────────────────────
+function setConn(state, text) {
+  document.getElementById('connDot').className = 'dot ' + state;
+  document.getElementById('connText').textContent = text;
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────
+function log(msg, type = 'info') {
+  const term = document.getElementById('terminal');
+  term.querySelector('.empty')?.remove();
+  const now = new Date();
+  const ts = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+  const row = document.createElement('div');
+  row.className = `log-row ${type}`;
+  row.innerHTML = `<span class="ts">${ts}</span><span class="msg">${msg}</span>`;
+  term.appendChild(row);
+  term.scrollTop = term.scrollHeight;
+  if (term.children.length > 300) term.children[0].remove();
+}
+
+// ── Header stats ──────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('hPages').textContent  = pages.length;
+  document.getElementById('hBugs').textContent   = bugs;
+  document.getElementById('hSlow').textContent   = slow;
+  document.getElementById('hApiFail').textContent= apiFails;
+  document.getElementById('hRoutes').textContent = Object.keys(urlVisits).length;
+  document.getElementById('hActions').textContent = coverageData.unique_actions_count || 0;
+  const wfDone = workflowResults.filter(w => w.passed).length;
+  const wfTotal= workflowResults.length;
+  document.getElementById('hWorkflows').textContent = `${wfDone}/${wfTotal}`;
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : '—';
+  document.getElementById('hScore').textContent = avg;
+}
+
+
+// ── Clear / Reset ─────────────────────────────────────────────────────────
+function clearAllData() {
+  const artifactHint = workspaceInfo && workspaceInfo.artifacts
+    ? [workspaceInfo.artifacts.state, workspaceInfo.artifacts.history, workspaceInfo.artifacts.knowledge, workspaceInfo.artifacts.sidecar].filter(Boolean).join(', ')
+    : 'the current site state, history, knowledge, and sidecar files';
+  if (!confirm(`Clear all crawl data from this view?\nThis only clears the dashboard display - it does not delete files on disk.\n\nTo do a fully fresh run, also delete: ${artifactHint}`)) return;
+
+  // Mark session as cleared so hydration is skipped on reload
+  sessionStorage.setItem('qa_cleared', '1');
+
+  // Reset all in-memory state
+  pages          = [];
+  bugs           = 0;
+  slow           = 0;
+  apiFails       = 0;
+  scores         = [];
+  urlVisits      = {};
+  issueCount     = 0;
+  interactionStats = [];
+  workflowResults  = [];
+  runHistory       = [];
+  flakyActions     = [];
+  noChangeActions  = [];
+  coverageData     = { pct_pages_with_interactions: 0, unique_actions_count: 0, pct_critical_workflows: 0 };
+  _focusAreas      = [];
+  _focusOpenSet    = new Set();
+  apiMap.clear();
+  shotData.length  = 0;
+  kbData           = null;
+
+  // Clear all panels
+  document.getElementById('pagesPanel').innerHTML        = '<div class="empty"><div class="empty-icon">🕸</div>Data cleared — run agent.py to start a fresh crawl.</div>';
+  document.getElementById('issuesPanel').innerHTML       = '<div class="empty" id="issuesEmpty"><div class="empty-icon">✅</div>No issues yet…</div>';
+  document.getElementById('interactionsPanel').innerHTML = '<div class="empty" id="intEmpty"><div class="empty-icon">🖱</div>Interaction data appears after crawling…</div>';
+  document.getElementById('workflowsPanel').innerHTML    = '<div class="empty" id="wfEmpty"><div class="empty-icon">⚙️</div>Workflows run after crawl completes…</div>';
+  document.getElementById('historyPanel').innerHTML      = '<div class="empty" id="histEmpty"><div class="empty-icon">📈</div>No history.</div>';
+  document.getElementById('focusCards').innerHTML        = '';
+  document.getElementById('treeBox').innerHTML           = '';
+  document.getElementById('shotGrid').innerHTML          = '';
+  document.getElementById('apiTableBody').innerHTML      = '';
+  document.getElementById('hmList').innerHTML            = '';
+  const kbContent = document.getElementById('kbContent');
+  if (kbContent) kbContent.style.display = 'none';
+  const kbEmpty = document.getElementById('kbEmpty');
+  if (kbEmpty) kbEmpty.style.display = '';
+
+  // Clear terminal
+  document.getElementById('terminal').innerHTML = '<div class="empty"><div class="empty-icon">⬡</div>Data cleared — run agent.py for a fresh crawl.</div>';
+
+  // Reset header counters
+  updateStats();
+  updateCoverageBars({ pct_pages_with_interactions:0, unique_actions_count:0, pct_critical_workflows:0 });
+  document.getElementById('scanFill').style.width = '0%';
+  setActiveScan([], [], '—');
+  document.getElementById('issueBadge').style.display  = 'none';
+  document.getElementById('actionBadge').style.display = 'none';
+  document.getElementById('wfBadge').style.display     = 'none';
+  document.getElementById('apiBadge').style.display    = 'none';
+  const fb = document.getElementById('focusBadge');
+  if (fb) fb.style.display = 'none';
+  explorerRouteStats = [];
+  explorerFrontier = [];
+  explorerCurrentBatch = [];
+  explorerLog = [];
+  explorerKbSummary = {};
+
+  // Reset graph
+  try { Graph.clear(); } catch(_) {}
+
+  log('Dashboard cleared — run agent.py to start a fresh crawl', 'warn');
+  setConn('error', 'Cleared — awaiting agent');
+}
+
+// ── URL helpers ───────────────────────────────────────────────────────────
+function pathFromUrl(url) {
+  try { return new URL(url).pathname || '/'; } catch { return url || '/'; }
+}
+function canonicalPath(path) {
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const hexLongRe = /^[0-9a-f]{16,}$/i;
+  const numRe = /^\d{2,}$/;
+  const parts = String(path||'/').split('/').filter(Boolean);
+  if (!parts.length) return '/';
+  return '/' + parts.map(s => (uuidRe.test(s)||hexLongRe.test(s)||numRe.test(s)||(s.length>=20&&/\d/.test(s))) ? ':id' : s).join('/');
+}
+function groupedPath(url) { return canonicalPath(pathFromUrl(url)); }
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function workspaceHref(path) {
+  const raw = String(path || '').trim();
+  if (!raw) return '#';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return raw.replace(/\\/g, '/');
+}
+
+function renderWorkspace(info = null) {
+  workspaceInfo = info || workspaceInfo || {};
+  const metaEl = document.getElementById('workspaceMeta');
+  const cmdEl = document.getElementById('workspaceCommands');
+  const linkEl = document.getElementById('workspaceLinks');
+  if (!metaEl || !cmdEl || !linkEl) return;
+
+  if (!workspaceInfo || !workspaceInfo.site_id) {
+    metaEl.innerHTML = '<div class="workspace-name">No site profile loaded</div><div class="workspace-dir">Waiting for agent...</div>';
+    cmdEl.innerHTML = '';
+    linkEl.innerHTML = '';
+    return;
+  }
+
+  metaEl.innerHTML = `
+    <div class="workspace-name">${escapeHtml(workspaceInfo.site_name || workspaceInfo.site_id)}</div>
+    <div class="workspace-base">${escapeHtml(workspaceInfo.base_url || '')}</div>
+    <div class="workspace-dir">${escapeHtml(workspaceInfo.site_dir || '')}</div>
+  `;
+
+  const commands = workspaceInfo.commands || {};
+  cmdEl.innerHTML = Object.entries(commands).map(([key, value]) => `
+    <div class="workspace-row">
+      <span class="workspace-key">${escapeHtml(key)}</span>
+      <span class="workspace-val" title="${escapeHtml(value)}">${escapeHtml(value)}</span>
+    </div>
+  `).join('');
+
+  const artifacts = workspaceInfo.artifacts || {};
+  const preferred = ['site_config', 'state', 'log', 'report', 'history', 'knowledge', 'workflows', 'screenshots'];
+  linkEl.innerHTML = preferred
+    .filter(key => artifacts[key])
+    .map(key => `<a class="workspace-link" href="${escapeHtml(workspaceHref(artifacts[key]))}" target="_blank" rel="noopener">${escapeHtml(key)}</a>`)
+    .join('');
+}
+
+async function fetchWorkspace() {
+  try {
+    const resp = await fetch('/api/workspace?_=' + Date.now());
+    if (!resp.ok) return;
+    const info = await resp.json();
+    if (info && info.site_id) renderWorkspace(info);
+  } catch (_) {}
+}
+
+let activeScanUrls = [];
+let activeScanRouteCounts = new Map();
+let activeScanRoutes = new Set();
+
+function renderActiveUrls(urls = [], fallback = '—') {
+  const el = document.getElementById('activeUrl');
+  if (!el) return;
+  const items = (urls || []).filter(Boolean);
+  if (!items.length) {
+    el.innerHTML = `<div class="active-url-empty">${escapeHtml(fallback)}</div>`;
+    return;
+  }
+  el.innerHTML = items.map((url, idx) => {
+    const route = groupedPath(url);
+    const note = items.length > 1 ? `${items.length} pages active in this batch` : 'Single active page';
+    return `<div class="active-url-item ${idx === 0 ? 'current' : ''}">
+      <span class="active-url-idx">#${idx + 1}</span>
+      <div class="active-url-main">
+        <div class="active-url-route">${escapeHtml(route)}</div>
+        <div class="active-url-link">${escapeHtml(url)}</div>
+        ${idx === 0 ? `<div class="active-url-note">${escapeHtml(note)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setActiveScanLegacy(urls = [], routes = null, fallback = '—') {
+  activeScanUrls = (urls || []).filter(Boolean);
+  activeScanRoutes = new Set((routes || activeScanUrls.map(groupedPath)).filter(Boolean));
+  renderActiveUrls(activeScanUrls, fallback);
+  if (document.getElementById('treePanel').classList.contains('on')) renderTree();
+}
+
+// ── Score helpers ─────────────────────────────────────────────────────────
+function scoreClass(s) { const v=parseFloat(s); return isNaN(v)?'warn':v>=7?'good':v>=4?'warn':'bad'; }
+
+// ── False positive filter ─────────────────────────────────────────────────
+const FP = [/^no /i,/^none/i,/not found/i,/no issues/i,/no errors/i,/no missing/i,/no broken/i,/no bugs/i,/not applicable/i,/n\/a/i,/nothing/i,/looks good/i,/all good/i,/appears clean/i];
+function isRealIssue(t) { return t && typeof t==='string' && !FP.some(re=>re.test(t.trim())); }
+
+// ── Coverage bar update ───────────────────────────────────────────────────
+function updateCoverageBars(c) {
+  coverageData = c || coverageData;
+  const ppi  = coverageData.pct_pages_with_interactions || 0;
+  const wf   = coverageData.pct_critical_workflows || 0;
+  const acts = coverageData.unique_actions_count || 0;
+  document.getElementById('covPagesBar').style.width = Math.min(ppi, 100) + '%';
+  document.getElementById('covPagesPct').textContent = ppi.toFixed(0) + '%';
+  document.getElementById('covWfBar').style.width    = Math.min(wf, 100) + '%';
+  document.getElementById('covWfPct').textContent    = wf.toFixed(0) + '%';
+  // normalize actions: 50 actions = 100%
+  document.getElementById('covActBar').style.width   = Math.min(acts / 50 * 100, 100) + '%';
+  document.getElementById('covActPct').textContent   = acts;
+}
+
+// ── Add page card ─────────────────────────────────────────────────────────
+function addPageCard(p) {
+  document.getElementById('pagesEmpty')?.remove();
+  const panel = document.getElementById('pagesPanel');
+  const a = p.analysis || {};
+  const score    = a.health_score ?? p.health_score ?? '?';
+  const load     = p.load_time_ms ?? 0;
+  const bugList  = (a.bugs||[]).filter(isRealIssue);
+  const uxList   = (a.ux_issues||[]).filter(isRealIssue);
+  const path     = groupedPath(p.url);
+  const isSlow   = load > 3000;
+  const apiF     = p.api_failures ?? 0;
+  const fcp      = p.perf_metrics?.fcp;
+  const phase    = (p.crawl_phase || 'authenticated') === 'public' ? 'Public' : 'Auth';
+  let tags = '';
+  if (bugList.length)  tags += `<span class="tag bug">🐛 ${bugList.length}</span>`;
+  if (isSlow)          tags += `<span class="tag slow">⏱ ${load}ms</span>`;
+  if (uxList.length)   tags += `<span class="tag ux">♿ ${uxList.length}</span>`;
+  if (apiF>0)          tags += `<span class="tag api">🔌 ${apiF} API</span>`;
+  if (!tags)           tags  = `<span class="tag ok">✓ Clean</span>`;
+  const card = document.createElement('div');
+  card.className = 'pcard';
+  card.innerHTML = `
+    <div class="pcard-top">
+      <div class="score-ring ${scoreClass(score)}">${score}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pcard-path">${path}</div>
+        <div class="pcard-meta">
+          <span>${phase}</span>
+          <span>HTTP ${p.http_status??'?'}</span><span>${load}ms</span>
+          ${fcp?`<span style="color:#a78bfa">FCP ${fcp}ms</span>`:''}
+          <span>${p.links_found??0} links</span>
+        </div>
+      </div>
+    </div>
+    ${a.summary?`<div class="pcard-summary">${a.summary}</div>`:''}
+    <div class="pcard-tags">${tags}</div>`;
+  panel.insertBefore(card, panel.firstChild);
+  const cards = panel.querySelectorAll('.pcard');
+  if (cards.length > 150) cards[cards.length-1].remove();
+}
+
+// ── Issues panel ──────────────────────────────────────────────────────────
+function addIssues(p) {
+  const a = p.analysis || {};
+  const bugList= (a.bugs||[]).filter(isRealIssue);
+  const broken = (a.broken_links||[]).filter(isRealIssue);
+  const perf   = (a.performance_issues||[]).filter(isRealIssue);
+  const ux     = (a.ux_issues||[]).filter(isRealIssue);
+  const apiIss = (a.api_issues||[]).filter(isRealIssue);
+  const all = [
+    ...bugList.map(t=>({icon:'🐛',text:t,cat:'bug'})),
+    ...broken .map(t=>({icon:'🔗',text:t,cat:'link'})),
+    ...perf   .map(t=>({icon:'⚡',text:t,cat:'perf'})),
+    ...ux     .map(t=>({icon:'♿',text:t,cat:'ux'})),
+    ...apiIss .map(t=>({icon:'🔌',text:t,cat:'perf'})),
+  ];
+  if (!all.length) return;
+  document.getElementById('issuesEmpty')?.remove();
+  issueCount += all.length;
+  const badge = document.getElementById('issueBadge');
+  badge.style.display='inline-flex';
+  badge.textContent = issueCount>999?'999+':issueCount;
+  const path = groupedPath(p.url);
+  const hColor = bugList.length?'var(--red)':broken.length?'var(--orange)':perf.length?'var(--yellow)':'var(--purple)';
+  const card = document.createElement('div');
+  card.className = 'issue-card';
+  card.innerHTML = `
+    <div class="issue-card-header">
+      <div class="issue-type-dot" style="background:${hColor}"></div>
+      <span class="issue-path">${path}</span>
+      <span class="issue-count">${all.length} issue${all.length>1?'s':''}</span>
+    </div>
+    <div class="issue-items">${all.map(i=>`<div class="issue-item"><span class="issue-icon">${i.icon}</span><span class="issue-text cat-${i.cat}">${i.text}</span></div>`).join('')}</div>`;
+  document.getElementById('issuesPanel').insertBefore(card, document.getElementById('issuesPanel').firstChild);
+}
+
+// ── Ingest page ───────────────────────────────────────────────────────────
+function ingestPage(p, opts = {}) {
+  const skipGraph = !!opts.skipGraph;
+  const a = p.analysis || {};
+  pages.push(p);
+  const s = parseFloat(a.health_score ?? p.health_score ?? 5);
+  if (!isNaN(s)) scores.push(s);
+  bugs   += (a.bugs||[]).filter(isRealIssue).length;
+  if ((p.load_time_ms||0) > 3000) slow++;
+  apiFails += p.api_failures ?? 0;
+  const path = groupedPath(p.url);
+  urlVisits[path] = (urlVisits[path]??0) + 1;
+  addPageCard(p);
+  addIssues(p);
+  if (!skipGraph) {
+    Graph.markDone(path, parseFloat(p.analysis?.health_score ?? p.health_score ?? 5));
+    if (p.root_state) Graph.addRootState(path, p.root_state);
+    (p.discovered_links || []).forEach(link => {
+      const target = groupedPath(link);
+      if (target && target !== path) Graph.addDiscoveredEdge(path, target);
+    });
+
+    if (p.interaction_results) {
+      p.interaction_results.forEach(r => Graph.addInteraction(path, r));
+    }
+  }
+
+  addScreenshot(p);
+  if (p.api_calls) ingestApiCalls(p.api_calls);
+  rebuildFocusTree();
+  // Capture explorer intelligence for Explorer tab
+  if (p) {
+    explorerLog.unshift({
+      url:            p.url,
+      route:          groupedPath(p.url),
+      frontier_score: p.frontier_score ?? 0,
+      n_new:          p.n_new_elements ?? 0,
+      n_skip:         p.n_skipped_elements ?? 0,
+      n_links:        p.n_links_pushed ?? 0,
+      exhausted:      p.route_exhausted ?? false,
+      retry:          p.retry_status ?? '',
+    });
+    if (explorerLog.length > 200) explorerLog.length = 200;
+  }
+  if (document.getElementById('explorerPanel').classList.contains('on')) renderExplorer();
+  updateStats();
+}
+
+// ── Interactions panel ────────────────────────────────────────────────────
+function renderInteractions() {
+  const panel = document.getElementById('interactionsPanel');
+  if (!interactionStats.length && !flakyActions.length) return;
+  document.getElementById('intEmpty')?.remove();
+
+  panel.innerHTML = '';
+
+  // Top cards
+  const header = document.createElement('div');
+  header.className = 'int-panel-header';
+
+  function makeTopCard(title, items, badgeClass) {
+    if (!items.length) return '';
+    const rows = items.slice(0,5).map(r=>`
+      <div class="int-row">
+        <span class="int-route" title="${r.route}">${r.route}</span>
+        <span class="int-action" title="${r.action}">${r.action}</span>
+        <span class="int-badge ${badgeClass}">${badgeClass==='flaky'?`${(r.flakiness*100).toFixed(0)}% flaky`:`${r.neutral} no-change`}</span>
+      </div>`).join('');
+    return `<div class="int-summary-card"><h4>${title}</h4>${rows}</div>`;
+  }
+
+  header.innerHTML = makeTopCard('⚡ Top Flaky Actions', flakyActions, 'flaky') +
+                     makeTopCard('😶 Top No-Change Actions', noChangeActions, 'no-change');
+  panel.appendChild(header);
+
+  // Full table
+  const wrap = document.createElement('div');
+  wrap.className = 'int-table-wrap';
+  wrap.innerHTML = `<table class="int-table">
+    <thead><tr>
+      <th>Route</th><th>Action</th><th>Attempts</th>
+      <th>✓ Success</th><th>— Neutral</th><th>✗ Fail</th>
+      <th>Reliability</th><th>Flakiness</th>
+    </tr></thead>
+    <tbody>${interactionStats.slice(0,100).map(r=>{
+      const relPct = (r.reliability*100).toFixed(0);
+      const relColor = r.reliability>=0.7?'var(--green)':r.reliability>=0.3?'var(--yellow)':'var(--red)';
+      const flakyPct = (r.flakiness*100).toFixed(0);
+      return `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:.6rem">${r.route}</td>
+        <td>${r.action}</td>
+        <td style="text-align:center">${r.attempts}</td>
+        <td style="color:var(--green);text-align:center">${r.success}</td>
+        <td style="color:var(--muted);text-align:center">${r.neutral}</td>
+        <td style="color:var(--red);text-align:center">${r.fail}</td>
+        <td><div class="rel-bar"><div class="rel-fill" style="width:${relPct}%;background:${relColor}"></div><span style="color:${relColor};font-size:.6rem;font-family:'JetBrains Mono',monospace">${relPct}%</span></div></td>
+        <td style="color:${parseFloat(flakyPct)>30?'var(--yellow)':'var(--muted)'};font-family:'JetBrains Mono',monospace;font-size:.6rem">${flakyPct}%</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+  panel.appendChild(wrap);
+
+  const badge = document.getElementById('actionBadge');
+  const flakyCount = interactionStats.filter(r=>r.flakiness>0.3).length;
+  if (flakyCount > 0) { badge.style.display='inline-flex'; badge.textContent=flakyCount; }
+}
+
+// ── Workflow panel ────────────────────────────────────────────────────────
+function addWorkflowResult(result) {
+  workflowResults.push(result);
+  document.getElementById('wfEmpty')?.remove();
+  const panel = document.getElementById('workflowsPanel');
+  const badge = document.getElementById('wfBadge');
+  const failed = workflowResults.filter(w=>!w.passed).length;
+  if (failed>0) { badge.style.display='inline-flex'; badge.textContent=failed; }
+
+  const card = document.createElement('div');
+  card.className = 'wf-card';
+  const stepsHtml = (result.steps||[]).map(s=>`
+    <div class="wf-step">
+      <div class="wf-step-icon ${s.passed?'pass':'fail'}">${s.passed?'✓':'✗'}</div>
+      <span class="wf-step-desc">${s.description||s.type}</span>
+      ${s.error?`<span class="wf-step-error">${s.error.slice(0,60)}</span>`:''}
+    </div>`).join('');
+  card.innerHTML = `
+    <div class="wf-header">
+      <span class="wf-name">⚙ ${result.scenario}</span>
+      <span class="wf-status ${result.passed?'pass':'fail'}">${result.passed?'✓ PASS':'✗ FAIL'}</span>
+      <span class="wf-duration">${result.duration_ms||0}ms</span>
+      ${result.error?`<span style="color:var(--red);font-size:.62rem">${result.error.slice(0,80)}</span>`:''}
+    </div>
+    ${stepsHtml?`<div class="wf-steps">${stepsHtml}</div>`:''}`;
+  panel.insertBefore(card, panel.firstChild);
+  updateStats();
+}
+
+// ── History panel ─────────────────────────────────────────────────────────
+function renderHistory(history, deltas) {
+  if (history) runHistory = history;
+  const panel = document.getElementById('historyPanel');
+  document.getElementById('histEmpty')?.remove();
+  panel.innerHTML = '';
+
+  if (!runHistory.length) {
+    panel.innerHTML = '<div class="empty"><div class="empty-icon">📈</div>No run history yet.</div>';
+    return;
+  }
+
+  // Delta cards
+  const d = deltas || {};
+  if (Object.keys(d).length) {
+    const deltaEl = document.createElement('div');
+    deltaEl.className = 'history-delta';
+    const scoreDelta = d.score_delta || 0;
+    const bugDelta   = d.bug_delta || 0;
+    const latDelta   = d.api_latency_delta_ms || 0;
+    deltaEl.innerHTML = `
+      <div class="delta-card">
+        <div class="dv ${scoreDelta>0?'positive':scoreDelta<0?'negative':'neutral'} ${scoreDelta>0?'arrow-up':scoreDelta<0?'arrow-down':'arrow-flat'}">${Math.abs(scoreDelta).toFixed(2)}</div>
+        <div class="dk">Score delta</div>
+      </div>
+      <div class="delta-card">
+        <div class="dv ${bugDelta>0?'negative':bugDelta<0?'positive':'neutral'} ${bugDelta>0?'arrow-up':bugDelta<0?'arrow-down':'arrow-flat'}">${Math.abs(bugDelta)}</div>
+        <div class="dk">Bug delta</div>
+      </div>
+      <div class="delta-card">
+        <div class="dv ${latDelta>100?'negative':latDelta<-50?'positive':'neutral'}">${latDelta>=0?'+':''}${latDelta}ms</div>
+        <div class="dk">API latency Δ</div>
+      </div>
+      <div class="delta-card">
+        <div class="dv" style="color:var(--cyan)">${(d.new_routes||[]).length}</div>
+        <div class="dk">New routes</div>
+      </div>
+      <div class="delta-card">
+        <div class="dv" style="color:var(--orange)">${(d.removed_routes||[]).length}</div>
+        <div class="dk">Removed routes</div>
+      </div>`;
+    panel.appendChild(deltaEl);
+  }
+
+  // Sparkline chart
+  const chartWrap = document.createElement('div');
+  chartWrap.className = 'history-chart-wrap';
+  const maxScore = 10;
+  const bars = runHistory.map(h=>{
+    const sc = h.avg_score || 0;
+    const hue = Math.round(sc / 10 * 120);
+    const pct = Math.round(sc / maxScore * 100);
+    return `<div class="spark-bar" style="height:${pct}%;background:hsl(${hue},65%,50%)" data-tip="${h.date ? h.date.slice(0,16) : ''}: ${sc}"></div>`;
+  }).join('');
+  chartWrap.innerHTML = `<h4>Avg Score Trend (last ${runHistory.length} runs)</h4><div class="sparkline-row">${bars}</div>`;
+  panel.appendChild(chartWrap);
+
+  // Table
+  const tableWrap = document.createElement('div');
+  tableWrap.className = 'history-table-wrap';
+  const rows = [...runHistory].reverse().map(h=>{
+    const scoreColor = h.avg_score>=7?'var(--green)':h.avg_score>=4?'var(--yellow)':'var(--red)';
+    return `<tr>
+      <td>${h.date?h.date.slice(0,16):''}</td>
+      <td>${h.page_count||0}</td>
+      <td style="color:${scoreColor};font-weight:600">${h.avg_score||0}</td>
+      <td style="color:var(--red)">${h.bug_count||0}</td>
+      <td style="color:var(--orange)">${h.slow_count||0}</td>
+      <td style="color:var(--purple)">${h.api_failure_count||0}</td>
+      <td>${h.avg_api_latency_ms||0}ms</td>
+    </tr>`;
+  }).join('');
+  tableWrap.innerHTML = `<table class="history-table">
+    <thead><tr><th>Date</th><th>Pages</th><th>Avg Score</th><th>Bugs</th><th>Slow</th><th>API Fails</th><th>API Latency</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  panel.appendChild(tableWrap);
+
+  // New / removed routes
+  if (d.new_routes?.length || d.removed_routes?.length) {
+    const routeEl = document.createElement('div');
+    routeEl.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem';
+    const mkList = (title, items, color) => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.7rem">
+        <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem">${title}</div>
+        ${items.map(r=>`<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:${color};padding:.18rem 0">${r}</div>`).join('')}
+      </div>`;
+    routeEl.innerHTML = mkList('✨ New Routes', d.new_routes||[], 'var(--green)') +
+                        mkList('🗑 Removed Routes', d.removed_routes||[], 'var(--red)');
+    panel.appendChild(routeEl);
+  }
+}
+
+// ── Heatmap treemap ───────────────────────────────────────────────────────
+function renderTreemap() {
+  const container = document.getElementById('treemap');
+  const entries = Object.entries(urlVisits).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) return;
+
+  // Ensure the container has real layout dimensions before placing absolute cells.
+  // If offsetWidth is 0 the panel is hidden — defer until it becomes visible.
+  const W = container.clientWidth || container.offsetWidth;
+  const H = container.clientHeight || container.offsetHeight;
+  if (W < 10 || H < 10) return;  // panel not visible yet — showTab() will retry
+
+  // Remove old cells only (keep the empty-state div if present)
+  container.querySelectorAll('.tm-cell').forEach(el => el.remove());
+  const max=entries[0][1];
+  function layout(items,x,y,w,h){
+    if(!items.length||w<=2||h<=2)return;
+    if(items.length===1){place(items[0],x,y,w,h);return;}
+    const tot=items.reduce((s,[,v])=>s+v,0);
+    let half=0,split=0;
+    for(let i=0;i<items.length;i++){half+=items[i][1];if(half>=tot/2){split=i+1;break;}}
+    split=Math.max(1,Math.min(split,items.length-1));
+    const ratio=items.slice(0,split).reduce((s,[,v])=>s+v,0)/tot;
+    if(w>=h){layout(items.slice(0,split),x,y,Math.round(w*ratio),h);layout(items.slice(split),x+Math.round(w*ratio),y,w-Math.round(w*ratio),h);}
+    else{layout(items.slice(0,split),x,y,w,Math.round(h*ratio));layout(items.slice(split),x,y+Math.round(h*ratio),w,h-Math.round(h*ratio));}
+  }
+  function place([path,count],x,y,w,h){
+    if(w<4||h<4)return;
+    const intensity=count/max;
+    const hue=Math.round(120-intensity*120);
+    const sz=Math.min(w,h);
+    const fs=Math.max(9,Math.min(13,sz/6));
+    const cell=document.createElement('div');
+    cell.className='tm-cell';
+    cell.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:hsl(${hue},70%,${42+intensity*14}%)`;
+    cell.title=`${path}\n${count} visit${count>1?'s':''}`;
+    if(w>40&&h>28){const l=document.createElement('div');l.className='tm-label';l.style.fontSize=fs+'px';l.textContent=path.length>28?'…'+path.slice(-26):path;cell.appendChild(l);}
+    if(w>40&&h>44){const c=document.createElement('div');c.className='tm-count';c.style.fontSize=Math.max(8,fs-2)+'px';c.textContent=count+' visit'+(count>1?'s':'');cell.appendChild(c);}
+    container.appendChild(cell);
+  }
+  layout(entries,0,0,W,H);
+  const list=document.getElementById('hmList');list.innerHTML='';
+  entries.forEach(([path,count])=>{const i=count/max;const hue=Math.round(120-i*120);const row=document.createElement('div');row.className='hm-row';row.title=count+' visits';row.innerHTML=`<div class="hm-bar" style="width:${Math.max(4,i*40)}px;background:hsl(${hue},70%,50%)"></div><span class="hm-path">${path}</span><span class="hm-visits">${count}×</span>`;list.appendChild(row);});
+}
+
+// ── Load initial state from crawl_state.json via HTTP ─────────────────────
+async function hydratFromState() {
+  // Try HTTP first (served by agent.py or serve.py).
+  // If that fails (file://, agent stopped, CORS), fall back to
+  // window.__QA_STATE__ written by qa_data.js sidecar file.
+  // Never load if user has cleared data this session.
+  if (sessionStorage.getItem('qa_cleared') === '1') {
+    log('Data cleared — start a new run with agent.py', 'warn');
+    return;
+  }
+
+  let data = null;
+  let source = '';
+  try {
+    const resp = await fetch('/api/state?_=' + Date.now());  // bust cache
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text && text.trim() !== '' && text.trim() !== 'null') {
+        data = JSON.parse(text);
+        source = 'api/state';
+      }
+    }
+  } catch (_) {}
+
+  // Fallback: sidecar JS file (for file:// opening)
+  if (!data && typeof window.__QA_STATE__ !== 'undefined') {
+    data = window.__QA_STATE__;
+    source = 'qa_data.js sidecar';
+  }
+
+  if (!data || !(data.pages_data?.length)) {
+    log('No crawl data found - run agent.py to start a crawl', 'warn');
+    if (data && data.workspace) renderWorkspace(data.workspace);
+    return;
+  }
+  log('Loaded from ' + source, 'info');
+  if (data.workspace) renderWorkspace(data.workspace);
+
+  try {
+    const savedPages = data.pages_data || [];
+    if (!savedPages.length) return;
+    const hasStateGraph = !!(
+      data.state_graph &&
+      (
+        (data.state_graph.actions && data.state_graph.actions.length) ||
+        (data.state_graph.edges && data.state_graph.edges.length) ||
+        (data.state_graph.route_links && data.state_graph.route_links.length)
+      )
+    );
+    log(`Hydrating ${savedPages.length} pages from crawl_state.json…`, 'info');
+    const batchSize = 15;
+    let i = 0;
+    function batch() {
+      const end = Math.min(i + batchSize, savedPages.length);
+      for (; i < end; i++) ingestPage(savedPages[i], { skipGraph: hasStateGraph });
+      if (i < savedPages.length) setTimeout(batch, 0);
+      else {
+        log(`Loaded ${savedPages.length} pages from state`, 'ok');
+        const pct = Math.min((savedPages.length / 300) * 100, 100);
+        document.getElementById('scanFill').style.width = pct + '%';
+        if (hasStateGraph) {
+          setTimeout(() => Graph.hydrateStateGraph(data.state_graph), 120);
+        } else {
+          setTimeout(() => savedPages.forEach(p => {
+            const path = groupedPath(p.url);
+            Graph.markDone(path, parseFloat(p.analysis?.health_score ?? 5));
+            if (p.root_state) Graph.addRootState(path, p.root_state);
+            (p.discovered_links || []).forEach(link => {
+              const target = groupedPath(link);
+              if (target && target !== path) Graph.addDiscoveredEdge(path, target);
+            });
+            if (p.interaction_results) p.interaction_results.forEach(r => Graph.addInteraction(path, r));
+          }), 200);
+        }
+      }
+    }
+    batch();
+
+    // Restore interaction records
+    const irecs = data.interaction_records || {};
+    if (Object.keys(irecs).length) {
+      interactionStats = Object.values(irecs);
+      flakyActions = interactionStats.filter(r=>r.flakiness>0).sort((a,b)=>b.flakiness-a.flakiness).slice(0,10);
+      noChangeActions = interactionStats.filter(r=>r.neutral>0).sort((a,b)=>b.neutral-a.neutral).slice(0,10);
+      const badge = document.getElementById('actionBadge');
+      if (interactionStats.length>0) { badge.style.display='inline-flex'; badge.textContent=interactionStats.length; }
+    }
+
+    // Restore coverage
+    if (data.coverage) updateCoverageBars(data.coverage);
+
+    // Restore workflow results
+    if (data.workflow_results?.length) {
+      data.workflow_results.forEach(r => addWorkflowResult(r));
+    }
+  } catch(e) {
+    // Data load failed — that's fine, live updates will populate the view
+  }
+}
+
+// Load site history
+async function loadHistory() {
+  let history = null;
+  try {
+    const resp = await fetch('/api/history?_=' + Date.now());
+    if (resp.ok) history = await resp.json();
+  } catch (_) {}
+
+  // Sidecar fallback for file:// mode
+  if (!history && typeof window.__QA_HISTORY__ !== 'undefined') {
+    history = window.__QA_HISTORY__;
+  }
+
+  if (history && history.length) {
+    runHistory = history;
+    log(`Loaded ${history.length} run(s) from history`, 'info');
+  }
+}
+
+fetchWorkspace();
+
+// ── WebSocket ─────────────────────────────────────────────────────────────
+function connect() {
+  let ws;
+  try { ws = new WebSocket(WS); }
+  catch(e) {
+    setConn('error', 'Agent offline');
+    log('Agent not running — showing saved data only', 'warn');
+    return;
+  }
+
+  ws.onopen = () => { setConn('live','Connected'); log('WebSocket connected','ok'); };
+
+  ws.onmessage = ({data}) => {
+    let m; try { m = JSON.parse(data); } catch { return; }
+
+    switch (m.type) {
+      case 'init':
+        if (m.workspace) renderWorkspace(m.workspace);
+        if (m.pages?.length) {
+          const hasStateGraph = !!(
+            m.state_graph &&
+            (
+              (m.state_graph.actions && m.state_graph.actions.length) ||
+              (m.state_graph.edges && m.state_graph.edges.length) ||
+              (m.state_graph.route_links && m.state_graph.route_links.length)
+            )
+          );
+          if (hasStateGraph && pages.length) {
+            Graph.hydrateStateGraph(m.state_graph);
+            log(`Resumed â€” ${m.pages.length} pages`,'ok');
+            break;
+          }
+          log(`Resuming — ${m.pages.length} pages…`, 'info');
+          let i=0;
+          function b() { const e=Math.min(i+10,m.pages.length); for(;i<e;i++) ingestPage(m.pages[i]); if(i<m.pages.length) setTimeout(b,0); else log(`Resumed — ${m.pages.length} pages`,'ok'); }
+          b();
+          if (hasStateGraph && !pages.length) {
+            setTimeout(() => {
+              Graph.clear();
+              Graph.hydrateStateGraph(m.state_graph);
+            }, 180);
+          }
+        }
+        break;
+
+      case 'status':
+        log(m.msg, 'info');
+        setConn('live', 'Running');
+        break;
+
+      case 'verification_needed':
+        log(m.msg, 'email');
+        setConn('waiting', 'Awaiting email verify…');
+        break;
+
+      case 'waiting':
+        log(m.msg, 'warn');
+        break;
+
+      case 'crawling':
+        setActiveScan(m.active_urls || [m.url], m.active_routes || null, 'Waiting for next batch…');
+        document.getElementById('hQueue').textContent = m.queue_size ?? 0;
+        explorerCurrentBatch = m.frontier_scores || [];
+        if (m.frontier_preview) explorerFrontier = m.frontier_preview;
+        log(`→ ${((m.active_urls || [m.url]).map(groupedPath)).join('  ·  ')}`, 'go');
+        setConn('live','Scanning');
+        (m.active_routes || (m.active_urls || [m.url]).map(groupedPath)).forEach(r => Graph.markScanning(r));
+        if (document.getElementById('explorerPanel').classList.contains('on')) renderExplorer();
+        break;
+
+      case 'interaction_live':
+        if (m.interaction) {
+          const route = m.route || groupedPath(m.url || '');
+          Graph.addInteraction(route, m.interaction, true);
+        }
+        break;
+
+      case 'page_done': {
+        const p = m.page;
+        if (m.route_stats)   explorerRouteStats = m.route_stats;
+        if (m.frontier_preview) explorerFrontier = m.frontier_preview;
+        if (m.frontier_size !== undefined) {
+          document.getElementById('hQueue').textContent = m.frontier_size;
+        }
+        activeScanUrls = removeFirstMatchingValue(activeScanUrls, url => url === p.url);
+        syncActiveRouteState();
+        explorerCurrentBatch = removeFirstMatchingValue(explorerCurrentBatch, item => (item.url || '') === p.url);
+        renderActiveUrls(activeScanUrls, activeScanUrls.length ? 'Waiting for next batch…' : 'Waiting for next batch…');
+        if (document.getElementById('treePanel').classList.contains('on')) renderTree();
+        ingestPage(p);
+        const pct = Math.min((pages.length / 300) * 100, 100);
+        document.getElementById('scanFill').style.width = pct + '%';
+        log(`✓ ${groupedPath(p.url)}  [${p.health_score??'?'}/10]  ${p.load_time_ms}ms`, 'done');
+        break;
+      }
+
+      case 'frontier_init':
+        explorerRouteStats  = m.route_stats   || [];
+        explorerFrontier    = m.frontier_preview || [];
+        explorerCurrentBatch = [];
+        explorerKbSummary   = {
+          run: m.kb_run, routes: m.kb_routes,
+          elements: m.kb_elements, skippable: m.kb_skippable,
+        };
+        if (m.frontier_size !== undefined) document.getElementById('hQueue').textContent = m.frontier_size;
+        log(`KB loaded: ${m.kb_routes} routes, ${m.kb_elements} elements, `+
+            `${m.kb_skippable} skippable, ${m.frontier_size} frontier`, 'ok');
+        if (document.getElementById('explorerPanel').classList.contains('on')) renderExplorer();
+        break;
+
+      case 'interaction_stats':
+        interactionStats = m.stats || [];
+        if (m.coverage) updateCoverageBars(m.coverage);
+        if (m.flaky)     flakyActions = m.flaky;
+        if (m.no_change) noChangeActions = m.no_change;
+        // Re-render if on that tab
+        if (document.getElementById('interactionsPanel').classList.contains('on')) renderInteractions();
+        updateStats();
+        break;
+
+      case 'workflow_done':
+        addWorkflowResult(m.result);
+        log(m.msg, m.result?.passed ? 'ok' : 'warn');
+        break;
+
+      case 'error':
+        log(m.msg, 'error');
+        setConn('error', 'Error');
+        break;
+
+      case 'complete':
+        log(m.msg, 'done');
+        setConn('live','✓ Complete');
+        document.getElementById('scanFill').style.width = '100%';
+        setActiveScan(m.active_urls || [], [], '— Crawl complete —');
+        if (m.coverage) updateCoverageBars(m.coverage);
+        if (m.interaction_stats) { interactionStats = m.interaction_stats; flakyActions = m.flaky||[]; noChangeActions = m.no_change||[]; }
+        if (m.history || m.deltas) renderHistory(m.history, m.deltas);
+        if (m.kb_summary) explorerKbSummary = m.kb_summary;
+        if (m.route_stats) explorerRouteStats = m.route_stats;
+        if (m.frontier_preview) explorerFrontier = m.frontier_preview;
+        explorerCurrentBatch = [];
+        if (document.getElementById('explorerPanel').classList.contains('on')) renderExplorer();
+        // Only render treemap if heatmap tab is currently visible
+        if (document.getElementById('heatmapPanel').classList.contains('on')) requestAnimationFrame(renderTreemap);
+        updateStats();
+        break;
+    }
+  };
+
+  ws.onclose = () => {
+    // Only show "retrying" if we had a live connection before.
+    // If agent was never running, just show static mode quietly.
+    if (pages.length > 0) {
+      setConn('error', 'Agent offline — data frozen');
+    } else {
+      setConn('error', 'Agent offline');
+    }
+    log('Agent disconnected — showing saved data', 'warn');
+    setTimeout(connect, 8000);   // retry less aggressively when viewing offline
+  };
+  ws.onerror = () => {};         // suppress console errors when agent is simply not running
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+(async () => {
+  await hydratFromState();
+  await loadHistory();
+  await loadKnowledge();
+  connect();
+})();
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUTE GRAPH — force-directed canvas + element satellite nodes
+// ══════════════════════════════════════════════════════════════════════════
+const Graph = (() => {
+
+  // ── Data ──────────────────────────────────────────────────────────────
+  // Route + state nodes
+  const nodes    = new Map();   // nodeId -> node object
+  const edges    = new Set();   // "fromId|toId|type"
+  const edgeList = [];          // { from, to, type }
+  const pings    = [];          // { x, y, t, color }
+
+  // Element nodes — orbit their parent route/state node
+  const elems         = new Map(); // elemId -> elem object
+  const parentElems   = new Map(); // parentNodeId -> [elemId, ...]
+  const elemTargets   = new Map(); // "elemId|nodeId" -> { from, to, outcome }
+  const seenInteractions = new Set();
+
+  let canvas, ctx, tooltip;
+  let W = 0, H = 0;
+  let offsetX = 0, offsetY = 0, scale = 1;
+  let dragging = false, dragStartX = 0, dragStartY = 0, dragOffX = 0, dragOffY = 0;
+  let animFrame = null;
+  let physicsOn  = true;
+  let labelsOn   = true;
+  let showLinks  = true;
+  let showElems  = true;
+  let nodeFilter = '';
+  let linkFilter = 'all';
+  let elemFilter = '';   // '' | 'new' | 'navigation' | 'modal_open' | 'dom_mutation' | 'broken' | 'no_change' | 'skip'
+  let graphSearch = '';
+  let spacingFactor = 1.2;
+  let initialized = false;
+
+  // ── Colour helpers ────────────────────────────────────────────────────
+  function scoreColor(s) {
+    const v = parseFloat(s) || 5;
+    return v >= 7 ? '#22d37a' : v >= 4 ? '#f5c842' : '#ff4a6e';
+  }
+  function outcomeColor(outcome, isNew, isSkip) {
+    if (isNew)  return '#00d4aa';
+    if (isSkip) return '#2a3a52';
+    switch (outcome) {
+      case 'navigation':   return '#4a8cff';
+      case 'modal_open':   return '#9b6dff';
+      case 'dom_mutation': return '#f5c842';
+      case 'broken':       return '#ff4a6e';
+      case 'api_error':    return '#ff8c42';
+      case 'no_change':    return '#253045';
+      default:             return '#3a4d6a';
+    }
+  }
+  function outcomeIcon(outcome, isNew, isSkip) {
+    if (isNew)  return '✦';
+    if (isSkip) return '·';
+    switch (outcome) {
+      case 'navigation':   return '→';
+      case 'modal_open':   return '▭';
+      case 'dom_mutation': return '~';
+      case 'broken':       return '✗';
+      case 'api_error':    return '!';
+      case 'no_change':    return '·';
+      default:             return '·';
+    }
+  }
+
+  // ── Stable hash IDs ───────────────────────────────────────────────────
+  function hashId(s, prefix) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+    return prefix + Math.abs(h).toString(36);
+  }
+  function routeId(route)       { return hashId(route, 'n'); }
+  function stateId(route, stateKey) { return hashId(route + '::' + stateKey, 's'); }
+  function elemId(parentId, text)   { return hashId(parentId + '::' + text, 'e'); }
+
+  function routeDepth(route) { return (route.match(/\//g) || []).length; }
+  function parentRoute(route) {
+    if (!route || route === '/') return null;
+    const parts = route.replace(/\/$/, '').split('/').filter(Boolean);
+    if (!parts.length) return null;
+    return parts.length === 1 ? '/' : '/' + parts.slice(0, -1).join('/');
+  }
+  function chromeHostRoute(route) {
+    const parent = parentRoute(route);
+    return !parent || parent === '/' ? (route || '/') : parent;
+  }
+  function ensureAncestors(route) {
+    let child = route;
+    while (true) {
+      const par = parentRoute(child);
+      if (par === null) break;
+      upsertNode(par, {});
+      _rawEdge(par, child, 'hierarchy');
+      child = par;
+      if (par === '/') break;
+    }
+  }
+
+  // ── Route node management ─────────────────────────────────────────────
+  function upsertNode(route, opts = {}) {
+    const id = routeId(route);
+    if (!nodes.has(id)) {
+      const depth = routeDepth(route);
+      const ang   = (hashId(route,'').charCodeAt(0) / 36) * Math.PI * 2;
+      const r     = routeRing(depth);
+      nodes.set(id, {
+        id, route, depth, kind: 'route', label: route,
+        x: (W||800)/2 + Math.cos(ang)*r + (Math.random()-.5)*40,
+        y: (H||600)/2 + Math.sin(ang)*r + (Math.random()-.5)*40,
+        vx: 0, vy: 0,
+        score: opts.score ?? 5,
+        visits: 0,
+        status: opts.status ?? 'queued',
+      });
+    } else {
+      const n = nodes.get(id);
+      if (opts.score  !== undefined) n.score  = opts.score;
+      if (opts.status !== undefined) n.status = opts.status;
+    }
+    nodes.get(id).visits++;
+    return nodes.get(id);
+  }
+
+  function upsertStateNode(route, info = {}, active = false) {
+    const routeNode = upsertNode(route, {});
+    const rawKey = info.state_id || `${info.kind || 'state'}::${info.label || 'root'}::${info.depth || 0}`;
+    const id = stateId(route, rawKey);
+    if (!nodes.has(id)) {
+      const depth = Math.max(routeNode.depth + 0.45, routeNode.depth + 0.45 + (info.depth || 0) * 0.4);
+      const ang   = (hashId(id,'').charCodeAt(0) / 36) * Math.PI * 2;
+      const r     = stateRing(info.depth || 0);
+      nodes.set(id, {
+        id,
+        route,
+        depth,
+        kind: 'state',
+        label: info.label || 'root',
+        stateKind: info.kind || 'page',
+        stateDepth: info.depth || 0,
+        parentId: routeNode.id,
+        x: routeNode.x + Math.cos(ang)*r + (Math.random()-.5)*14,
+        y: routeNode.y + Math.sin(ang)*r + (Math.random()-.5)*14,
+        vx: 0, vy: 0,
+        score: routeNode.score,
+        visits: 0,
+        status: active ? 'active' : 'seen',
+      });
+      _rawEdge(routeNode.id, id, 'state_link', true);
+    } else {
+      const n = nodes.get(id);
+      n.label = info.label || n.label;
+      n.stateKind = info.kind || n.stateKind;
+      n.stateDepth = info.depth ?? n.stateDepth;
+      n.parentId = routeNode.id;
+      n.status = active ? 'active' : (n.status === 'active' ? 'seen' : n.status);
+    }
+    nodes.get(id).visits++;
+    return nodes.get(id);
+  }
+
+  function _rawEdge(fromRef, toRef, type = 'crosslink', isNodeId = false) {
+    if (!fromRef || !toRef || fromRef === toRef) return;
+    const fromId = isNodeId ? fromRef : routeId(fromRef);
+    const toId   = isNodeId ? toRef   : routeId(toRef);
+    const key = fromId + '|' + toId + '|' + type;
+    if (!edges.has(key)) {
+      edges.add(key);
+      edgeList.push({ from: fromId, to: toId, type });
+    }
+  }
+  function upsertEdge(fromRoute, toRoute) {
+    ensureAncestors(fromRoute);
+    ensureAncestors(toRoute);
+    _rawEdge(fromRoute, toRoute);
+  }
+
+  // ── Element node management ───────────────────────────────────────────
+  const BASE_ROUTE_RING = 96;
+  const BASE_ROUTE_STEP = 124;
+  const BASE_STATE_RING = 62;
+  const BASE_STATE_STEP = 28;
+  const ORBIT_BASE = 50;   // inner orbit radius (px world units)
+  const ORBIT_STEP = 18;   // extra radius per ring overflow
+  const ELEM_R     = 4.5;  // element node radius (px world)
+  const BASE_REPEL = 6200;
+  const BASE_ATTRACT = 0.018;
+  const BASE_IDEAL = 150;
+  const DAMPING = 0.82;
+
+  function routeRing(depth) {
+    return (BASE_ROUTE_RING + depth * BASE_ROUTE_STEP) * spacingFactor;
+  }
+  function stateRing(depth) {
+    return (BASE_STATE_RING + depth * BASE_STATE_STEP) * Math.max(0.92, spacingFactor * 0.92);
+  }
+  function orbitRadius(base) {
+    return base * Math.max(0.9, spacingFactor * 0.94);
+  }
+  function searchNeedle() {
+    return String(graphSearch || '').trim().toLowerCase();
+  }
+
+  function routeChildren(routeNode) {
+    if (!routeNode || routeNode.kind !== 'route') return [];
+    return [...nodes.values()].filter(node => node.parentId === routeNode.id);
+  }
+
+  function elementHasIssue(el) {
+    return !!el && ['broken', 'api_error', 'timeout'].includes(el.outcome);
+  }
+
+  function elementMatchesSearch(el, needle) {
+    if (!needle) return true;
+    const fields = [
+      el.text,
+      el.meta?.action,
+      el.meta?.action_kind,
+      el.meta?.scope_label,
+      el.meta?.section,
+      el.meta?.from_state_label,
+      el.meta?.to_state_label,
+      el.meta?.to_route,
+      el.meta?.selector,
+      el.meta?.target_kind,
+    ];
+    return fields.some(v => String(v || '').toLowerCase().includes(needle));
+  }
+
+  function nodeMatchesSearch(node, needle) {
+    if (!needle) return true;
+    const fields = [
+      node.route,
+      node.label,
+      node.stateKind,
+      node.status,
+    ];
+    if (fields.some(v => String(v || '').toLowerCase().includes(needle))) return true;
+    const ids = parentElems.get(node.id) || [];
+    return ids.some(eid => {
+      const el = elems.get(eid);
+      return el && elementMatchesSearch(el, needle);
+    });
+  }
+
+  function nodeHasIssue(node) {
+    if (!node) return false;
+    if (node.kind === 'route' && (parseFloat(node.score) || 5) < 4) return true;
+    const ids = parentElems.get(node.id) || [];
+    if (ids.some(eid => elementHasIssue(elems.get(eid)))) return true;
+    if (node.kind === 'route') {
+      return routeChildren(node).some(child => nodeHasIssue(child));
+    }
+    return false;
+  }
+
+  function nodeIsLive(node) {
+    if (!node) return false;
+    if (node.status === 'scanning' || node.status === 'active') return true;
+    if (node.kind === 'route') return routeChildren(node).some(child => child.status === 'active');
+    if (node.kind === 'state') {
+      const parent = nodes.get(node.parentId);
+      return !!parent && parent.status === 'scanning';
+    }
+    return false;
+  }
+
+  function nodeVisible(node) {
+    if (!node) return false;
+    if (nodeFilter === 'routes' && node.kind !== 'route') return false;
+    if (nodeFilter === 'states' && node.kind !== 'state') return false;
+    if (nodeFilter === 'content' && node.kind === 'state' && node.stateKind === 'chrome') return false;
+    if (nodeFilter === 'active' && !(nodeIsLive(node) || (node.kind === 'route' && routeChildren(node).some(child => nodeIsLive(child))))) {
+      return false;
+    }
+    if (nodeFilter === 'problems' && !(nodeHasIssue(node) || (node.kind === 'route' && routeChildren(node).some(child => nodeHasIssue(child))))) {
+      return false;
+    }
+    const needle = searchNeedle();
+    if (!needle) return true;
+    if (nodeMatchesSearch(node, needle)) return true;
+    return node.kind === 'route' && routeChildren(node).some(child => nodeMatchesSearch(child, needle));
+  }
+
+  function nodeEdgeAllowed(type) {
+    switch (linkFilter) {
+      case 'structure':
+        return type === 'hierarchy' || type === 'state_link';
+      case 'journey':
+        return type === 'crosslink' || type === 'state_transition';
+      case 'state':
+        return type === 'state_link' || type === 'state_transition';
+      case 'crosslink':
+        return type === 'crosslink';
+      case 'elements':
+      case 'none':
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  function nodeEdgeVisible(edge) {
+    if (!showLinks || !nodeEdgeAllowed(edge.type)) return false;
+    const fromNode = nodes.get(edge.from);
+    const toNode = nodes.get(edge.to);
+    return nodeVisible(fromNode) && nodeVisible(toNode);
+  }
+
+  function nodeEdgeActive(edge) {
+    const fromNode = nodes.get(edge.from);
+    const toNode = nodes.get(edge.to);
+    return !!fromNode && !!toNode && nodeVisible(fromNode) && nodeVisible(toNode) && nodeEdgeAllowed(edge.type);
+  }
+
+  function spokeLinkVisible(el) {
+    if (!showLinks || !showElems || !elemVisible(el)) return false;
+    return linkFilter === 'all' || linkFilter === 'elements' || linkFilter === 'journey' || linkFilter === 'state';
+  }
+
+  function elementTargetVisible(edge) {
+    if (!showLinks || !showElems) return false;
+    if (linkFilter === 'none' || linkFilter === 'structure' || linkFilter === 'crosslink') return false;
+    const el = elems.get(edge.from);
+    const node = nodes.get(edge.to);
+    if (!el || !node || !elemVisible(el) || !nodeVisible(node)) return false;
+    if (linkFilter === 'state') return node.kind === 'state';
+    if (linkFilter === 'journey') return edge.outcome !== 'no_change' && edge.outcome !== 'skip';
+    return true;
+  }
+
+  function refreshElementOrbits() {
+    for (const [parentId, list] of parentElems.entries()) {
+      const parentNode = nodes.get(parentId);
+      list.forEach((eid, idx) => {
+        const el = elems.get(eid);
+        if (!el) return;
+        const ring = Math.floor(idx / 14);
+        el.orbitR = orbitRadius(ORBIT_BASE + ring * ORBIT_STEP);
+        if (parentNode) {
+          el.x = parentNode.x + Math.cos(el.angle) * el.orbitR;
+          el.y = parentNode.y + Math.sin(el.angle) * el.orbitR;
+        }
+      });
+    }
+  }
+
+  function applySpacing(nextFactor) {
+    const next = Math.max(0.85, Math.min(1.9, nextFactor || spacingFactor));
+    if (Math.abs(next - spacingFactor) < 0.0001) return;
+    const cx = (W || 800) / 2;
+    const cy = (H || 600) / 2;
+    const ratio = next / spacingFactor;
+    for (const node of nodes.values()) {
+      node.x = cx + (node.x - cx) * ratio;
+      node.y = cy + (node.y - cy) * ratio;
+      node.vx *= 0.4;
+      node.vy *= 0.4;
+    }
+    spacingFactor = next;
+    refreshElementOrbits();
+    updateStats();
+  }
+
+  function visibleBounds() {
+    const xs = [];
+    const ys = [];
+    for (const node of nodes.values()) {
+      if (!nodeVisible(node)) continue;
+      xs.push(node.x);
+      ys.push(node.y);
+    }
+    if (showElems) {
+      for (const el of elems.values()) {
+        if (!elemVisible(el)) continue;
+        xs.push(el.x);
+        ys.push(el.y);
+      }
+    }
+    if (!xs.length || !ys.length) return null;
+    return {
+      minX: Math.min(...xs),
+      maxX: Math.max(...xs),
+      minY: Math.min(...ys),
+      maxY: Math.max(...ys),
+    };
+  }
+
+  function fit() {
+    const bounds = visibleBounds();
+    if (!bounds) {
+      reset();
+      return;
+    }
+    const spanX = Math.max(140, bounds.maxX - bounds.minX);
+    const spanY = Math.max(120, bounds.maxY - bounds.minY);
+    const pad = 80;
+    const nextScale = Math.min((W - pad * 2) / spanX, (H - pad * 2) / spanY);
+    scale = Math.max(0.16, Math.min(2.4, Number.isFinite(nextScale) ? nextScale : 1));
+    offsetX = W / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
+    offsetY = H / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
+  }
+
+  function addElement(parentId, text, outcome, isNew, isSkip, meta = {}) {
+    if (!parentId || !text) return null;
+    if (!nodes.has(parentId)) return null;
+    const eid = elemId(parentId, `${text}::${meta.action_kind || ''}`);
+
+    if (elems.has(eid)) {
+      const el = elems.get(eid);
+      el.outcome = outcome;
+      el.isNew   = isNew;
+      el.isSkip  = isSkip;
+      el.seen    = (el.seen || 1) + 1;
+      el.meta    = { ...el.meta, ...meta };
+      return el;
+    }
+
+    if (!parentElems.has(parentId)) parentElems.set(parentId, []);
+    const list = parentElems.get(parentId);
+    const idx  = list.length;
+    list.push(eid);
+
+    const ring    = Math.floor(idx / 14);
+    const perRing = Math.min(14, list.length);
+    const angle   = (idx / Math.max(perRing, 1)) * Math.PI * 2 - Math.PI / 2;
+    const orbitR  = orbitRadius(ORBIT_BASE + ring * ORBIT_STEP);
+
+    const parentNode = nodes.get(parentId);
+    const record = {
+      id: eid,
+      parentId,
+      text: text.slice(0, 40),
+      outcome,
+      isNew,
+      isSkip,
+      angle,
+      orbitR,
+      x: parentNode.x + Math.cos(angle) * orbitR,
+      y: parentNode.y + Math.sin(angle) * orbitR,
+      seen: 1,
+      meta,
+    };
+    elems.set(eid, record);
+    updateStats();
+    return record;
+  }
+
+  function linkElementToNode(elemNode, targetNodeId, outcome) {
+    if (!elemNode || !targetNodeId || !nodes.has(targetNodeId)) return;
+    const key = `${elemNode.id}|${targetNodeId}`;
+    if (!elemTargets.has(key)) {
+      elemTargets.set(key, { from: elemNode.id, to: targetNodeId, outcome: outcome || 'no_change' });
+    }
+  }
+
+  function addRootState(route, rootState, live = false) {
+    if (!route || !rootState || !Object.keys(rootState).length) return null;
+    ensureAncestors(route);
+    return upsertStateNode(route, {
+      state_id: rootState.state_id,
+      label: rootState.label || rootState.section || 'root',
+      kind: rootState.kind || 'page',
+      depth: rootState.depth || 0,
+    }, live);
+  }
+
+  function interactionCreatesTransition(interaction, fromRoute, toRoute, scopeKind) {
+    const fromStateId = interaction.from_state_id || '';
+    const toStateId = interaction.to_state_id || fromStateId;
+    const outcome = interaction.outcome || 'unknown';
+    if (toRoute && toRoute !== fromRoute) return true;
+    if (scopeKind === 'chrome') return false;
+    if (!toStateId || toStateId === fromStateId) return false;
+    if (interaction.same_page_transition || interaction.state_changed) return true;
+    if (outcome === 'modal_open' || outcome === 'dom_mutation') return true;
+    if (interaction.value_changed || interaction.submitted) return true;
+    if ((interaction.validation_errors || []).length) return true;
+    if (parseInt(interaction.surface_delta || 0, 10) > 0) return true;
+    return false;
+  }
+
+  function addInteraction(route, interaction, live = false) {
+    if (!interaction) return;
+    const token = interaction.interaction_id || hashId(JSON.stringify(interaction), 'ix');
+    if (seenInteractions.has(token)) return;
+    seenInteractions.add(token);
+
+    const fromRoute = interaction.from_route || route;
+    const toRoute   = interaction.to_route || fromRoute;
+    const scopeKind = interaction.scope_kind || 'page';
+    const graphRoute = scopeKind === 'chrome' ? chromeHostRoute(fromRoute) : fromRoute;
+    const stateRoute = graphRoute;
+    ensureAncestors(fromRoute);
+    upsertNode(fromRoute, {});
+    if (graphRoute !== fromRoute) {
+      ensureAncestors(graphRoute);
+      upsertNode(graphRoute, {});
+    }
+
+    const fromState = upsertStateNode(stateRoute, {
+      state_id: scopeKind === 'chrome'
+        ? `${stateRoute}::chrome::${interaction.chrome_context || interaction.scope_label || 'shared-nav'}`
+        : interaction.from_state_id,
+      label: scopeKind === 'chrome'
+        ? (interaction.chrome_context || interaction.scope_label || 'Shared navigation')
+        : (interaction.from_state_label || interaction.scope_label || interaction.section || 'root'),
+      kind: scopeKind === 'chrome' ? 'chrome' : (interaction.from_state_kind || 'page'),
+      depth: scopeKind === 'chrome' ? 0 : (interaction.state_depth || 0),
+    }, live);
+    const parentId = fromState ? fromState.id : routeId(stateRoute);
+    const elemNode = addElement(
+      parentId,
+      interaction.action || '?',
+      interaction.outcome || 'no_change',
+      interaction.is_new ?? false,
+      false,
+      interaction,
+    );
+    if (live && fromState) addPing(fromState.x, fromState.y, outcomeColor(interaction.outcome, interaction.is_new, false));
+
+    if (interactionCreatesTransition(interaction, fromRoute, toRoute, scopeKind) && toRoute === fromRoute) {
+      const toState = upsertStateNode(stateRoute, {
+        state_id: interaction.to_state_id,
+        label: interaction.to_state_label || interaction.scope_label || 'state',
+        kind: interaction.to_state_kind || 'section',
+        depth: interaction.next_state_depth || ((interaction.state_depth || 0) + 1),
+      }, live);
+      if (toState) {
+        linkElementToNode(elemNode, toState.id, interaction.outcome);
+        _rawEdge(fromState.id, toState.id, 'state_transition', true);
+      }
+    } else if (toRoute && toRoute !== fromRoute) {
+      ensureAncestors(toRoute);
+      const targetRoute = upsertNode(toRoute, { status: live ? 'scanning' : 'queued' });
+      _rawEdge(graphRoute, toRoute, 'crosslink');
+      linkElementToNode(elemNode, targetRoute.id, interaction.outcome);
+    }
+  }
+
+  function hydrateStateGraph(graph) {
+    if (!graph) return;
+    (graph.roots || []).forEach(item => {
+      if (!item || !item.route) return;
+      upsertNode(item.route, { status: 'done', score: parseFloat(item.score ?? 5) });
+      if (item.root_state) addRootState(item.route, item.root_state);
+    });
+    (graph.route_links || []).forEach(link => {
+      if (!link || !link.from_route || !link.to_route || link.from_route === link.to_route) return;
+      addDiscoveredEdge(link.from_route, link.to_route);
+    });
+    (graph.actions || []).forEach(action => {
+      const route = action.route || action.from_route || '';
+      if (!route) return;
+      addInteraction(route, action);
+    });
+    updateStats();
+  }
+
+  // ── Physics ───────────────────────────────────────────────────────────
+  function tick() {
+    const arr = [...nodes.values()].filter(nodeVisible);
+    if (!physicsOn || arr.length < 2) {
+      if (showElems) refreshElementOrbits();
+      return;
+    }
+    const repel = BASE_REPEL * spacingFactor;
+    const attract = BASE_ATTRACT / Math.max(spacingFactor, 0.92);
+    const ideal = BASE_IDEAL * Math.max(0.92, spacingFactor * 0.96);
+
+    // Route→route repulsion
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i+1; j < arr.length; j++) {
+        const a = arr[i], b = arr[j];
+        const dx = b.x-a.x, dy = b.y-a.y;
+        const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+        const f = repel / (dist*dist);
+        const fx = dx/dist*f, fy = dy/dist*f;
+        a.vx -= fx; a.vy -= fy;
+        b.vx += fx; b.vy += fy;
+      }
+    }
+
+    // Edge spring forces
+    for (const edge of edgeList) {
+      if (!nodeEdgeActive(edge)) continue;
+      const a = nodes.get(edge.from), b = nodes.get(edge.to);
+      if (!a || !b) continue;
+      const type = edge.type;
+      const idealLen = type === 'state_link' ? stateRing(0)
+                     : type === 'state_transition' ? stateRing(0) * 1.15
+                     : Math.abs(b.depth-a.depth) === 1 ? routeRing(1) * 0.82
+                     : ideal;
+      const dx = b.x-a.x, dy = b.y-a.y;
+      const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+      const f = (dist-idealLen) * attract;
+      const fx = dx/dist*f, fy = dy/dist*f;
+      a.vx += fx; a.vy += fy;
+      b.vx -= fx; b.vy -= fy;
+    }
+
+    // Gravity to centre
+    const cx = W/2, cy = H/2;
+    for (const n of arr) {
+      n.vx += (cx-n.x)*0.0008;
+      n.vy += (cy-n.y)*0.0008;
+      n.vx *= DAMPING; n.vy *= DAMPING;
+      n.x  += n.vx;    n.y  += n.vy;
+    }
+
+    // Element nodes: orbit their parent (slow drift)
+    if (showElems) {
+      for (const el of elems.values()) {
+        const parentNode = nodes.get(el.parentId);
+        if (!parentNode) continue;
+        el.angle += 0.0015;
+      }
+      refreshElementOrbits();
+    }
+  }
+
+  // ── Draw helpers ──────────────────────────────────────────────────────
+  function toScreen(wx, wy) { return [wx*scale+offsetX, wy*scale+offsetY]; }
+  function toWorld(sx, sy)  { return [(sx-offsetX)/scale, (sy-offsetY)/scale]; }
+  function addPing(x, y, color) { pings.push({x, y, t:0, color: color||'#4a8cff'}); }
+
+  function elemVisible(el) {
+    if (!showElems || !el) return false;
+    const parentNode = nodes.get(el.parentId);
+    if (!parentNode || !nodeVisible(parentNode)) return false;
+    if (nodeFilter === 'routes') return false;
+    if (nodeFilter === 'content' && (parentNode.stateKind === 'chrome' || el.meta?.scope_kind === 'chrome')) return false;
+    if (elemFilter === 'new' && !el.isNew) return false;
+    if (elemFilter === 'skip' && !el.isSkip) return false;
+    if (elemFilter && !['new', 'skip'].includes(elemFilter) && el.outcome !== elemFilter) return false;
+    const needle = searchNeedle();
+    if (!needle) return true;
+    return elementMatchesSearch(el, needle) || nodeMatchesSearch(parentNode, needle);
+  }
+
+  // ── Main draw ─────────────────────────────────────────────────────────
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.save();
+    ctx.strokeStyle = 'rgba(22,29,46,0.5)';
+    ctx.lineWidth = 1;
+    const gs = 40*scale;
+    const sx0 = ((offsetX%gs)+gs)%gs, sy0 = ((offsetY%gs)+gs)%gs;
+    for (let x=sx0; x<W; x+=gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y=sy0; y<H; y+=gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    ctx.restore();
+
+    if (nodes.size === 0) {
+      ctx.fillStyle = '#3a4d6a';
+      ctx.font = '13px Outfit,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Route graph builds as the agent crawls…', W/2, H/2);
+      return;
+    }
+
+    // ── Route edges ───────────────────────────────────────────────────
+    ctx.save();
+    for (const edge of edgeList) {
+      if (!nodeEdgeVisible(edge)) continue;
+      const a = nodes.get(edge.from), b = nodes.get(edge.to);
+      if (!a || !b) continue;
+      const type = edge.type;
+      const [ax,ay] = toScreen(a.x,a.y), [bx,by] = toScreen(b.x,b.y);
+      const hier = type === 'hierarchy';
+      const stateLink = type === 'state_link';
+      const stateTransition = type === 'state_transition';
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+      ctx.strokeStyle = hier ? 'rgba(0,212,170,0.45)'
+                      : stateLink ? 'rgba(90,200,255,0.28)'
+                      : stateTransition ? 'rgba(245,200,66,0.28)'
+                      : 'rgba(74,140,255,0.15)';
+      ctx.lineWidth   = hier ? 1.5 : stateTransition ? 1.15 : stateLink ? 0.95 : 0.8;
+      ctx.stroke();
+      if ((hier || stateTransition) && scale > 0.4) {
+        const ang = Math.atan2(by-ay, bx-ax);
+        const hl  = 6*Math.min(scale,1.5);
+        const ex  = bx - Math.cos(ang)*10*scale;
+        const ey  = by - Math.sin(ang)*10*scale;
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - hl*Math.cos(ang-.4), ey - hl*Math.sin(ang-.4));
+        ctx.lineTo(ex - hl*Math.cos(ang+.4), ey - hl*Math.sin(ang+.4));
+        ctx.closePath();
+        ctx.fillStyle = hier ? 'rgba(0,212,170,0.6)' : 'rgba(245,200,66,0.58)';
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // ── Element spoke lines ───────────────────────────────────────────
+    if (showElems) {
+      ctx.save();
+      ctx.setLineDash([2,5]);
+      ctx.lineWidth = 0.55;
+      for (const el of elems.values()) {
+        if (!spokeLinkVisible(el)) continue;
+        const parentNode = nodes.get(el.parentId);
+        if (!parentNode) continue;
+        const [rx,ry] = toScreen(parentNode.x, parentNode.y);
+        const [ex,ey] = toScreen(el.x,  el.y);
+        ctx.strokeStyle = outcomeColor(el.outcome, el.isNew, el.isSkip) + '44';
+        ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(ex,ey); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    if (showElems && elemTargets.size) {
+      ctx.save();
+      ctx.lineWidth = 0.8;
+      for (const edge of elemTargets.values()) {
+        if (!elementTargetVisible(edge)) continue;
+        const el = elems.get(edge.from);
+        const node = nodes.get(edge.to);
+        if (!el || !node) continue;
+        const [ex,ey] = toScreen(el.x, el.y);
+        const [tx,ty] = toScreen(node.x, node.y);
+        ctx.strokeStyle = outcomeColor(edge.outcome, false, false) + '55';
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ── Radar pings ───────────────────────────────────────────────────
+    for (let i = pings.length-1; i >= 0; i--) {
+      const p = pings[i];
+      const [sx2,sy2] = toScreen(p.x,p.y);
+      const alpha = Math.max(0, 1-p.t);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(sx2, sy2, p.t*42*scale, 0, Math.PI*2);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+      p.t += 0.022;
+      if (p.t >= 1) pings.splice(i,1);
+    }
+
+    // ── Route nodes ───────────────────────────────────────────────────
+    const nodeR = Math.max(5, Math.min(14, 8*scale));
+    for (const n of nodes.values()) {
+      if (!nodeVisible(n)) continue;
+      const [sx2,sy2] = toScreen(n.x,n.y);
+      if (sx2 < -60 || sx2 > W+60 || sy2 < -60 || sy2 > H+60) continue;
+
+      const isState = n.kind === 'state';
+      const baseColor = isState
+                      ? (n.status === 'active' ? '#00d4aa'
+                        : n.stateKind === 'chrome' ? '#ffb04a'
+                        : n.stateKind === 'modal' ? '#9b6dff'
+                        : '#5ac8fa')
+                      : n.status === 'scanning' ? '#4a8cff'
+                      : n.status === 'done'     ? scoreColor(n.score)
+                      :                           '#253045';
+
+      // Scanning glow
+      if (n.status === 'scanning' || n.status === 'active') {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(sx2,sy2, nodeR+6, 0, Math.PI*2);
+        ctx.fillStyle = isState ? 'rgba(0,212,170,0.12)' : 'rgba(74,140,255,0.12)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (nodeHasIssue(n) && n.status !== 'active' && n.status !== 'scanning') {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(sx2,sy2, nodeR+5.5, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,74,110,0.08)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Coverage ring — arc showing fraction of active (non-boring) elements
+      if (showElems) {
+        const rIds = (parentElems.get(n.id) || []).filter(eid => elemVisible(elems.get(eid)));
+        if (rIds.length > 0) {
+          const active = rIds.filter(eid => {
+            const el = elems.get(eid);
+            return el && !el.isSkip && el.outcome !== 'no_change';
+          }).length;
+          const frac = active / rIds.length;
+          const rr = nodeR + 4.5;
+          // background track
+          ctx.save();
+          ctx.beginPath(); ctx.arc(sx2,sy2, rr, 0, Math.PI*2);
+          ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 2.5; ctx.stroke();
+          // filled arc
+          if (frac > 0) {
+            ctx.beginPath();
+            ctx.arc(sx2,sy2, rr, -Math.PI/2, -Math.PI/2 + frac*Math.PI*2);
+            ctx.strokeStyle = '#00d4aa99'; ctx.lineWidth = 2.5; ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      // Node body
+      if (isState) {
+        const sr = Math.max(4, nodeR * 0.82);
+        ctx.beginPath();
+        ctx.moveTo(sx2, sy2 - sr);
+        ctx.lineTo(sx2 + sr, sy2);
+        ctx.lineTo(sx2, sy2 + sr);
+        ctx.lineTo(sx2 - sr, sy2);
+        ctx.closePath();
+        ctx.fillStyle = baseColor + '22';
+        ctx.fill();
+        ctx.strokeStyle = baseColor;
+        ctx.lineWidth = n.status === 'active' ? 1.9 : 1.2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(sx2, sy2, sr * 0.25, 0, Math.PI * 2);
+        ctx.fillStyle = baseColor;
+        ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(sx2,sy2, nodeR, 0, Math.PI*2);
+        ctx.fillStyle   = baseColor + '33'; ctx.fill();
+        ctx.strokeStyle = baseColor;
+        ctx.lineWidth   = n.status === 'scanning' ? 2 : 1.5;
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx2,sy2, nodeR*0.35, 0, Math.PI*2);
+        ctx.fillStyle = baseColor; ctx.fill();
+      }
+
+      // Label
+      if (labelsOn && scale > 0.45) {
+        const rIds    = (parentElems.get(n.id) || []).filter(eid => elemVisible(elems.get(eid)));
+        const rawLbl  = isState ? n.label : n.route;
+        const lbl     = rawLbl.length > 28 ? '…'+rawLbl.slice(-26) : rawLbl;
+        const full    = showElems && rIds.length ? `${lbl} (${rIds.length})` : lbl;
+        const fsize   = isState ? Math.max(8, Math.min(10, 8.5*scale)) : Math.max(9, Math.min(12, 10*scale));
+        ctx.font = `${fsize}px "JetBrains Mono",monospace`;
+        ctx.textAlign = 'center';
+        const tw = ctx.measureText(full).width;
+        ctx.fillStyle = 'rgba(6,8,16,0.78)';
+        ctx.fillRect(sx2-tw/2-3, sy2+nodeR+2, tw+6, fsize+4);
+        ctx.fillStyle = isState ? baseColor : n.status === 'done' ? scoreColor(n.score) : '#3a4d6a';
+        ctx.fillText(full, sx2, sy2+nodeR+fsize+3);
+      }
+    }
+
+    // ── Element satellite nodes ───────────────────────────────────────
+    if (showElems) {
+      const er = Math.max(2, ELEM_R * scale);
+      for (const el of elems.values()) {
+        if (!elemVisible(el)) continue;
+        const [ex,ey] = toScreen(el.x, el.y);
+        if (ex < -20 || ex > W+20 || ey < -20 || ey > H+20) continue;
+
+        const c = outcomeColor(el.outcome, el.isNew, el.isSkip);
+
+        // New-element glow
+        if (el.isNew && scale > 0.3) {
+          ctx.save();
+          ctx.beginPath(); ctx.arc(ex,ey, er+3.5, 0, Math.PI*2);
+          ctx.fillStyle = c + '28'; ctx.fill();
+          ctx.restore();
+        }
+
+        // Dot
+        ctx.beginPath(); ctx.arc(ex,ey, er, 0, Math.PI*2);
+        ctx.fillStyle = el.isSkip ? c + '33' : c + 'cc';
+        ctx.fill();
+        if (!el.isSkip && er > 2) {
+          ctx.strokeStyle = c; ctx.lineWidth = 0.7; ctx.stroke();
+        }
+
+        // Icon when zoomed in
+        if (scale > 0.9 && er > 5) {
+          ctx.save();
+          ctx.font = `${Math.min(er*1.1, 8)}px sans-serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillStyle = el.isSkip ? '#3a4d6a' : '#fff';
+          ctx.fillText(outcomeIcon(el.outcome, el.isNew, el.isSkip), ex, ey);
+          ctx.restore(); ctx.textBaseline = 'alphabetic';
+        }
+
+        // Label when very zoomed in
+        if (labelsOn && scale > 1.2) {
+          const lbl   = el.text.length > 16 ? el.text.slice(0,15)+'…' : el.text;
+          const fsize = Math.max(7, Math.min(9, 7.5*scale));
+          ctx.save();
+          ctx.font = `${fsize}px "JetBrains Mono",monospace`;
+          ctx.textAlign = 'center';
+          const tw = ctx.measureText(lbl).width;
+          ctx.fillStyle = 'rgba(6,8,16,0.72)';
+          ctx.fillRect(ex-tw/2-2, ey+er+1, tw+4, fsize+3);
+          ctx.fillStyle = c;
+          ctx.fillText(lbl, ex, ey+er+fsize+1);
+          ctx.restore();
+        }
+      }
+    }
+
+    // ── Legends ───────────────────────────────────────────────────────
+    ctx.save();
+    ctx.font = '10px Outfit,sans-serif';
+    ctx.textAlign = 'left';
+
+    const routeLeg = [
+      {c:'#4a8cff', l:'Scanning'},
+      {c:'#22d37a', l:'Score ≥7'},
+      {c:'#f5c842', l:'Score 4–6'},
+      {c:'#ff4a6e', l:'Score <4'},
+      {c:'#253045', l:'Queued'},
+    ];
+    routeLeg.forEach(({c,l},i) => {
+      const lx=12, ly=H-14-i*18;
+      ctx.beginPath(); ctx.arc(lx+5,ly,5,0,Math.PI*2);
+      ctx.fillStyle=c+'44'; ctx.fill();
+      ctx.strokeStyle=c; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='#3a4d6a'; ctx.fillText(l, lx+14, ly+3.5);
+    });
+
+    if (showElems) {
+      const elemLeg = [
+        {c:'#00d4aa', l:'✦ New element'},
+        {c:'#4a8cff', l:'→ Navigation'},
+        {c:'#9b6dff', l:'▭ Modal'},
+        {c:'#f5c842', l:'~ DOM change'},
+        {c:'#ff4a6e', l:'✗ Broken'},
+        {c:'#ff8c42', l:'! API error'},
+        {c:'#253045', l:'· No change/skip'},
+      ];
+      const baseY = H - 14 - routeLeg.length*18 - 18;
+      elemLeg.forEach(({c,l},i) => {
+        const lx=12, ly=baseY - i*14;
+        ctx.beginPath(); ctx.arc(lx+4,ly, 3.5, 0, Math.PI*2);
+        ctx.fillStyle = c+'cc'; ctx.fill();
+        ctx.fillStyle = '#3a4d6a'; ctx.fillText(l, lx+12, ly+3.5);
+      });
+      // Coverage ring sample
+      const ry = baseY - elemLeg.length*14 - 14;
+      ctx.beginPath(); ctx.arc(16, ry, 7, -Math.PI/2, Math.PI/2);
+      ctx.strokeStyle='#00d4aa88'; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.fillStyle='#3a4d6a'; ctx.fillText('Coverage arc', 28, ry+3.5);
+    }
+
+    const edgeLeg = [
+      {c:'rgba(0,212,170,0.7)',  lw:2,   dash:[],  l:'Parent → child'},
+      {c:'rgba(90,200,255,0.55)',lw:1.2, dash:[],  l:'Route → state'},
+      {c:'rgba(245,200,66,0.6)', lw:1.1, dash:[],  l:'State → state'},
+      {c:'rgba(74,140,255,0.4)', lw:0.8, dash:[],  l:'Cross-link'},
+      {c:'rgba(100,130,180,0.35)',lw:0.6,dash:[2,4],l:'Node → element'},
+    ];
+    const eBase = H - 14 - routeLeg.length*18 - 12;
+    edgeLeg.forEach(({c,lw,dash,l},i) => {
+      const lx=12, ly=eBase - i*16;
+      ctx.setLineDash(dash);
+      ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx+18,ly);
+      ctx.strokeStyle=c; ctx.lineWidth=lw*1.5; ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#3a4d6a'; ctx.fillText(l, lx+24, ly+3.5);
+    });
+
+    ctx.restore();
+  }
+
+  // ── Animation loop ────────────────────────────────────────────────────
+  function loop() { tick(); draw(); animFrame = requestAnimationFrame(loop); }
+
+  // ── Resize ────────────────────────────────────────────────────────────
+  function resize() {
+    if (!canvas) return;
+    const panel   = document.getElementById('graphPanel');
+    const toolbar = document.getElementById('graphToolbar');
+    W = panel.clientWidth  || 800;
+    H = panel.clientHeight || 600;
+    H -= toolbar ? toolbar.offsetHeight : 40;
+    canvas.width = W; canvas.height = H;
+  }
+
+  // ── Hit test (elem first, then route) ─────────────────────────────────
+  function hitTest(wx, wy) {
+    if (showElems) {
+      const er = Math.max(2, ELEM_R) / scale * 2.5;
+      for (const el of elems.values()) {
+        if (!elemVisible(el)) continue;
+        const dx=el.x-wx, dy=el.y-wy;
+        if (dx*dx+dy*dy < er*er) return {type:'elem', data:el};
+      }
+    }
+    const nr = Math.max(5, Math.min(14, 8)) / scale;
+    for (const n of nodes.values()) {
+      if (!nodeVisible(n)) continue;
+      const dx=n.x-wx, dy=n.y-wy;
+      if (dx*dx+dy*dy < nr*nr*4) return {type:'route', data:n};
+    }
+    return null;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────
+  function init() {
+    if (initialized) return;
+    initialized = true;
+    canvas  = document.getElementById('graphCanvas');
+    ctx     = canvas.getContext('2d');
+    tooltip = document.getElementById('graphTooltip');
+    resize();
+    window.addEventListener('resize', resize);
+
+    canvas.addEventListener('mousedown', e => {
+      dragging=true;
+      dragStartX=e.clientX; dragStartY=e.clientY;
+      dragOffX=offsetX; dragOffY=offsetY;
+    });
+    window.addEventListener('mousemove', e => {
+      if (dragging) {
+        offsetX = dragOffX+(e.clientX-dragStartX);
+        offsetY = dragOffY+(e.clientY-dragStartY);
+      }
+      const rect = canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      const [wx,wy] = toWorld(mx,my);
+      const hit = hitTest(wx,wy);
+      if (hit) {
+        tooltip.className = 'visible';
+        tooltip.style.left = (mx+14)+'px';
+        tooltip.style.top  = (my-10)+'px';
+        if (hit.type === 'route') {
+          const n   = hit.data;
+          const ids = (parentElems.get(n.id) || []).filter(eid => elemVisible(elems.get(eid)));
+          const active  = ids.filter(eid=>{ const e=elems.get(eid); return e&&!e.isSkip&&e.outcome!=='no_change'; }).length;
+          const isNew   = ids.filter(eid=>{ const e=elems.get(eid); return e&&e.isNew; }).length;
+          const broken  = ids.filter(eid=>{ const e=elems.get(eid); return e&&e.outcome==='broken'; }).length;
+          const pct     = ids.length ? Math.round(active/ids.length*100) : 0;
+          tooltip.textContent =
+            `${n.kind === 'state' ? `${n.route} :: ${n.label}` : n.route}\n`+
+            `${n.kind === 'state' ? `State: ${n.stateKind}` : `Score: ${n.score}`}  Visits: ${n.visits}  Depth: ${n.depth}  Status: ${n.status}\n`+
+            `Elements: ${ids.length} total · ${active} active (${pct}% coverage) · ${isNew} new · ${broken} broken`;
+        } else {
+          const el = hit.data;
+          const parentNode = nodes.get(el.parentId);
+          const tag = el.isNew ? '✦ First seen this run'
+                    : el.isSkip ? '⏭ Skipped (boring)'
+                    : `outcome: ${el.outcome}`;
+          tooltip.textContent =
+            `${parentNode ? (parentNode.kind === 'state' ? `${parentNode.route} :: ${parentNode.label}` : parentNode.route) : '?'}\n`+
+            `"${el.text}"\n`+
+            `${tag} · seen ${el.seen}×`;
+        }
+      } else {
+        tooltip.className = '';
+      }
+    });
+    window.addEventListener('mouseup', ()=>{ dragging=false; });
+    canvas.addEventListener('wheel', e=>{
+      e.preventDefault();
+      const f=e.deltaY<0?1.1:0.91;
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      offsetX=mx-(mx-offsetX)*f; offsetY=my-(my-offsetY)*f;
+      scale=Math.max(0.12, Math.min(5, scale*f));
+    }, {passive:false});
+
+    document.getElementById('graphLabels').addEventListener('change',    e=>{ labelsOn   = e.target.checked; });
+    document.getElementById('graphPhysics').addEventListener('change',   e=>{ physicsOn  = e.target.checked; });
+    document.getElementById('graphShowLinks').addEventListener('change', e=>{ showLinks  = e.target.checked; updateStats(); });
+    document.getElementById('graphShowElems').addEventListener('change', e=>{ showElems  = e.target.checked; updateStats(); });
+    document.getElementById('graphNodeFilter').addEventListener('change',e=>{ nodeFilter = e.target.value; updateStats(); });
+    document.getElementById('graphLinkFilter').addEventListener('change',e=>{ linkFilter = e.target.value || 'all'; updateStats(); });
+    document.getElementById('graphElemFilter').addEventListener('change',e=>{ elemFilter = e.target.value; updateStats(); });
+    document.getElementById('graphSearch').addEventListener('input',     e=>{ graphSearch = e.target.value || ''; updateStats(); });
+    document.getElementById('graphSpacing').addEventListener('input',    e=>{
+      const pct = parseInt(e.target.value || '120', 10);
+      const label = document.getElementById('graphSpacingValue');
+      if (label) label.textContent = `${pct}%`;
+      applySpacing(pct / 100);
+    });
+    const spacingLabel = document.getElementById('graphSpacingValue');
+    if (spacingLabel) spacingLabel.textContent = `${Math.round(spacingFactor * 100)}%`;
+    loop();
+  }
+
+  // ── Public ────────────────────────────────────────────────────────────
+  function reset() { scale=1; offsetX=0; offsetY=0; }
+  function clear() {
+    nodes.clear();
+    edges.clear();
+    edgeList.length = 0;
+    elems.clear();
+    parentElems.clear();
+    elemTargets.clear();
+    seenInteractions.clear();
+    pings.length = 0;
+    reset();
+    updateStats();
+  }
+
+  function markQueued(route) {
+    if (!route||route==='/') return;
+    upsertNode(route,{status:'queued'}); updateStats();
+  }
+  function markScanning(route, fromRoute) {
+    if (!route||route==='/') return;
+    ensureAncestors(route);
+    const n=upsertNode(route,{status:'scanning'});
+    addPing(n.x,n.y,'#4a8cff');
+    if (fromRoute&&fromRoute!==route) _rawEdge(fromRoute,route);
+    updateStats();
+  }
+  function markDone(route, score, links, fromRoute) {
+    if (!route||route==='/') return;
+    ensureAncestors(route);
+    const n=upsertNode(route,{status:'done',score});
+    addPing(n.x,n.y,scoreColor(score));
+    if (fromRoute&&fromRoute!==route) _rawEdge(fromRoute,route);
+    updateStats();
+  }
+  function addDiscoveredEdge(fromRoute, toRoute) { upsertEdge(fromRoute, toRoute); }
+
+  function legacyGraphStats() {
+    const e1=document.getElementById('graphNodeCount');
+    const e2=document.getElementById('graphEdgeCount');
+    const e3=document.getElementById('graphDepthInfo');
+    const e4=document.getElementById('graphElemCount');
+    const routeCount = [...nodes.values()].filter(n=>n.kind==='route').length;
+    const stateCount = [...nodes.values()].filter(n=>n.kind==='state').length;
+    if (e1) e1.textContent = `${routeCount} routes · ${stateCount} states`;
+    if (e2) e2.textContent = `${edges.size + elemTargets.size} links`;
+    if (e3) {
+      const maxRouteDepth = routeCount ? Math.max(...[...nodes.values()].filter(n=>n.kind==='route').map(n=>n.depth)) : 0;
+      const maxStateDepth = stateCount ? Math.max(...[...nodes.values()].filter(n=>n.kind==='state').map(n=>n.stateDepth||0)) : 0;
+      e3.textContent = `route depth ${maxRouteDepth} · state depth ${maxStateDepth}`;
+    }
+    if (e4) {
+      const total = elems.size;
+      const isNew = [...elems.values()].filter(e=>e.isNew).length;
+      const skip  = [...elems.values()].filter(e=>e.isSkip).length;
+      const vis   = showElems ? ` · ${total} elems · ${isNew} new · ${skip} skip` : ' · elements hidden';
+      e4.textContent = vis.slice(3);
+    }
+  }
+
+  function updateStats() {
+    const e1 = document.getElementById('graphNodeCount');
+    const e2 = document.getElementById('graphEdgeCount');
+    const e3 = document.getElementById('graphDepthInfo');
+    const e4 = document.getElementById('graphElemCount');
+    const routeNodes = [...nodes.values()].filter(n => n.kind === 'route');
+    const stateNodes = [...nodes.values()].filter(n => n.kind === 'state');
+    const routeCount = routeNodes.length;
+    const stateCount = stateNodes.length;
+    const visibleRouteCount = routeNodes.filter(nodeVisible).length;
+    const visibleStateCount = stateNodes.filter(nodeVisible).length;
+    const visibleNodeLinks = edgeList.filter(nodeEdgeVisible).length;
+    const visibleElemLinks = [...elemTargets.values()].filter(elementTargetVisible).length;
+    const visibleSpokes = [...elems.values()].filter(spokeLinkVisible).length;
+    if (e1) e1.textContent = `${visibleRouteCount}/${routeCount} routes · ${visibleStateCount}/${stateCount} states`;
+    if (e2) e2.textContent = `${showLinks ? visibleNodeLinks + visibleElemLinks + visibleSpokes : 0}/${edges.size + elemTargets.size + elems.size} links`;
+    if (e3) {
+      const maxRouteDepth = routeCount ? Math.max(...routeNodes.map(n => n.depth)) : 0;
+      const maxStateDepth = stateCount ? Math.max(...stateNodes.map(n => n.stateDepth || 0)) : 0;
+      e3.textContent = `route depth ${maxRouteDepth} · state depth ${maxStateDepth} · spacing ${Math.round(spacingFactor * 100)}%`;
+    }
+    if (e4) {
+      const total = elems.size;
+      const visible = [...elems.values()].filter(elemVisible).length;
+      const isNew = [...elems.values()].filter(e => elemVisible(e) && e.isNew).length;
+      const skip = [...elems.values()].filter(e => e.isSkip).length;
+      const vis = showElems ? ` · ${visible}/${total} elems · ${isNew} new · ${skip} skip` : ' · elements hidden';
+      e4.textContent = vis.slice(3);
+    }
+  }
+
+  return { init, reset, clear, fit, markQueued, markScanning, markDone, addDiscoveredEdge, addRootState, addInteraction, hydrateStateGraph, resize };
+})();
+
+function graphReset() { Graph.reset(); }
+function graphFit() { Graph.fit(); }
+
+
+
+// ══════════════════════════════════════════════════════════════════════
+// SCREENSHOTS TAB
+// ══════════════════════════════════════════════════════════════════════
+const shotData = [];
+
+function addScreenshot(page) {
+  if (!page.screenshot) return;
+  shotData.push({
+    url:   page.url   || '',
+    route: groupedPath(page.url || ''),
+    score: parseFloat(page.health_score ?? page.analysis?.health_score ?? 5),
+    path:  page.screenshot,
+  });
+  if (document.getElementById('screenshotsPanel').classList.contains('on')) renderShots();
+  const e = document.getElementById('shotEmpty');
+  if (e) e.style.display = 'none';
+}
+
+function renderShots() {
+  const grid = document.getElementById('shotGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  [...shotData].reverse().forEach(s => {
+    const score = s.score || 5;
+    const color = score >= 7 ? '#22d37a' : score >= 4 ? '#f5c842' : '#ff4a6e';
+    const fname = s.path.split(/[/\\]/).pop();
+    const imgSrc = `/screenshots/${fname}`;
+    const card = document.createElement('div');
+    card.className = 'shot-card';
+    card.innerHTML = `
+      <img class="shot-img" src="${imgSrc}" alt="${s.route}"
+           onerror="this.style.background='var(--border)';this.style.height='60px'">
+      <div class="shot-meta">
+        <span class="shot-route" title="${s.url}">${s.route || s.url}</span>
+        <span class="shot-score" style="color:${color}">${score}/10</span>
+      </div>`;
+    card.onclick = () => openLightbox(imgSrc, s.route, score);
+    grid.appendChild(card);
+  });
+}
+
+function openLightbox(src, caption, score) {
+  const lb = document.getElementById('shotLightbox');
+  if (!lb) return;
+  document.getElementById('shotLightboxImg').src = src;
+  document.getElementById('shotLightboxCaption').textContent = `${caption}  —  Score: ${score}/10`;
+  lb.classList.add('open');
+}
+function closeLightbox() {
+  const lb = document.getElementById('shotLightbox');
+  if (lb) lb.classList.remove('open');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// APIS TAB
+// ══════════════════════════════════════════════════════════════════════
+const apiMap = new Map(); // method::endpoint → stats
+
+function ingestApiCalls(apiCalls) {
+  if (!Array.isArray(apiCalls) || !apiCalls.length) return;
+  apiCalls.forEach(call => {
+    const method   = (call.method || 'GET').toUpperCase();
+    const raw      = call.url || '';
+    let   endpoint = raw;
+    try { endpoint = new URL(raw).pathname; } catch (_) {}
+    const key = method + '::' + endpoint;
+    if (!apiMap.has(key)) {
+      apiMap.set(key, { method, endpoint, calls:0, failures:0, latencies:[], statuses:[] });
+    }
+    const e = apiMap.get(key);
+    e.calls++;
+    if (call.failed || (call.status >= 400)) e.failures++;
+    if (call.duration_ms) e.latencies.push(call.duration_ms);
+    if (call.status)      e.statuses.push(call.status);
+  });
+  const badge = document.getElementById('apiBadge');
+  if (badge) { badge.textContent = apiMap.size; badge.style.display = apiMap.size ? 'inline' : 'none'; }
+  if (document.getElementById('apisPanel')?.classList.contains('on')) renderApis();
+}
+
+function renderApis() {
+  const tbody = document.getElementById('apiTableBody');
+  const empty = document.getElementById('apiEmpty');
+  const wrap  = document.getElementById('apiTableWrap');
+  if (!tbody || !empty || !wrap) return;
+
+  const search = (document.getElementById('apiSearch')?.value || '').toLowerCase();
+  const mfilt  = document.getElementById('apiMethodFilter')?.value || '';
+  const sfilt  = document.getElementById('apiStatusFilter')?.value || '';
+
+  let rows = [...apiMap.values()];
+  if (search) rows = rows.filter(r => r.endpoint.toLowerCase().includes(search));
+  if (mfilt)  rows = rows.filter(r => r.method === mfilt);
+  if (sfilt === 'ok')   rows = rows.filter(r => r.failures === 0);
+  if (sfilt === 'fail') rows = rows.filter(r => r.failures > 0);
+  rows.sort((a,b) => b.calls - a.calls);
+
+  if (!rows.length) { empty.style.display = ''; wrap.style.display = 'none'; return; }
+  empty.style.display = 'none'; wrap.style.display = '';
+
+  const avgLat = arr => arr.length ? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length) : null;
+  const MC = m => `method-${['GET','POST','PUT','PATCH','DELETE'].includes(m)?m:'OTHER'}`;
+
+  tbody.innerHTML = rows.map(r => {
+    const lat   = avgLat(r.latencies);
+    const latS  = lat != null ? `${lat}ms` : '—';
+    const lastSt= r.statuses[r.statuses.length-1] || '—';
+    const fail  = r.failures > 0;
+    return `<tr>
+      <td><span class="method-badge ${MC(r.method)}">${r.method}</span></td>
+      <td class="api-endpoint">${r.endpoint}</td>
+      <td class="${fail?'status-fail':'status-ok'}">${lastSt}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.62rem">${latS}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.calls}</td>
+      <td style="color:${fail?'var(--red)':'var(--muted)'};font-weight:${fail?700:400}">${r.failures}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// KNOWLEDGE TAB
+// ══════════════════════════════════════════════════════════════════════
+let kbData = null;
+
+async function loadKnowledge() {
+  try {
+    const r = await fetch('/api/knowledge?_=' + Date.now());
+    if (r.ok) { kbData = await r.json(); renderKnowledge(); }
+  } catch (_) {
+    // Try window.__QA_KNOWLEDGE__ sidecar
+    if (typeof window.__QA_KNOWLEDGE__ !== 'undefined') {
+      kbData = window.__QA_KNOWLEDGE__;
+      renderKnowledge();
+    }
+  }
+}
+
+function renderKnowledge() {
+  if (!kbData) return;
+  const routes   = Object.values(kbData.routes || {});
+  const totalEl  = routes.reduce((s,r) => s + Object.keys(r.elements||{}).length, 0);
+  const totalLnk = routes.reduce((s,r) => s + (r.known_links||[]).length, 0);
+
+  const empty   = document.getElementById('kbEmpty');
+  const content = document.getElementById('kbContent');
+  if (empty)   empty.style.display   = 'none';
+  if (content) content.style.display = '';
+
+  const stats = document.getElementById('kbStats');
+  if (stats) stats.innerHTML = [
+    { v: kbData.run_count||0,  k: 'Runs' },
+    { v: routes.length,        k: 'Routes known' },
+    { v: totalEl,              k: 'Elements tracked' },
+    { v: totalLnk,             k: 'Links discovered' },
+    { v: (kbData.effective_selectors||[]).length, k: 'Effective selectors' },
+  ].map(s => `<div class="kb-stat-card">
+    <div class="kb-stat-v">${s.v}</div>
+    <div class="kb-stat-k">${s.k}</div>
+  </div>`).join('');
+
+  const rDiv = document.getElementById('kbRoutes');
+  if (!rDiv) return;
+  const sorted = routes.slice().sort((a,b) =>
+    Object.keys(b.elements||{}).length - Object.keys(a.elements||{}).length
+  ).slice(0, 50);
+
+  rDiv.innerHTML = sorted.map(r => {
+    const elN   = Object.keys(r.elements||{}).length;
+    const lkN   = (r.known_links||[]).length;
+    const brkN  = Object.values(r.elements||{}).filter(e=>(e.broke||[]).length>0).length;
+    const sc    = r.avg_score || 5;
+    const sCol  = sc >= 7 ? '#22d37a' : sc >= 4 ? '#f5c842' : '#ff4a6e';
+    return `<div class="kb-route-row">
+      <span class="kb-route-path" title="${r.route}">${r.route}</span>
+      <span class="kb-badge">×${r.visit_count||0}</span>
+      <span class="kb-badge" style="color:var(--blue)">${elN} elements</span>
+      <span class="kb-badge" style="color:var(--purple)">${lkN} links</span>
+      <span class="kb-badge" style="color:${brkN?'var(--red)':'var(--muted)'}">${brkN} broken</span>
+      <span class="kb-badge" style="color:${sCol}">${sc.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// FOCUS AREAS + ROUTE TREE  (live dashboard versions)
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function scoreColor(s) {
+  return s >= 7 ? '#22d37a' : s >= 4 ? '#f5c842' : '#ff4a6e';
+}
+function scoreLabel(s) {
+  if (s >= 8) return 'Excellent';
+  if (s >= 7) return 'Good';
+  if (s >= 5) return 'Fair';
+  if (s >= 3) return 'Poor';
+  return 'Critical';
+}
+function effortStr(n) {
+  if (n === 0) return '—';
+  if (n <= 2)  return '~1h';
+  if (n <= 5)  return '~½ day';
+  if (n <= 10) return '~1 day';
+  return '~1+ days';
+}
+const FP2 = [/^no /i,/^none/i,/not found/i,/no issues/i,/looks good/i,/all good/i,/nothing/i,/n\/a/i];
+function realIssue(t) { return t && typeof t==='string' && !FP2.some(re=>re.test(t.trim())); }
+
+// ── Focus area computation ─────────────────────────────────────────────
+function computeFocusAreas() {
+  // Group pages by canonical route
+  const byRoute = {};
+  pages.forEach(p => {
+    const route = groupedPath(p.url);
+    (byRoute[route] = byRoute[route] || []).push(p);
+  });
+
+  return Object.entries(byRoute).map(([route, rp]) => {
+    const bugsArr=[], perfArr=[], uxArr=[], apiArr=[], visArr=[], brokenIntArr=[];
+    let scoreSum=0, apiFail=0, brokenN=0;
+
+    rp.forEach(p => {
+      const a = p.analysis || {};
+      scoreSum  += parseFloat(a.health_score ?? p.health_score ?? 5) || 5;
+      apiFail   += p.api_failures ?? 0;
+      brokenN   += p.broken_interactions ?? 0;
+      (a.bugs||[]).filter(realIssue).forEach(t=>bugsArr.push(t));
+      (a.performance_issues||[]).filter(realIssue).forEach(t=>perfArr.push(t));
+      (a.ux_issues||[]).filter(realIssue).forEach(t=>uxArr.push(t));
+      (a.api_issues||[]).filter(realIssue).forEach(t=>apiArr.push(t));
+      (a.visual_issues||[]).filter(realIssue).forEach(t=>visArr.push(t));
+      (a.broken_interactions||[]).filter(realIssue).forEach(t=>brokenIntArr.push(t));
+      // Click-level break records
+      (p.interaction_results||[]).forEach(ir => {
+        if (ir.broke || ir.outcome==='broken') {
+          const e = (ir.js_errors||[])[0] || ir.outcome || 'crash';
+          brokenIntArr.push(`'${(ir.action||'?').slice(0,60)}' → ${String(e).slice(0,70)}`);
+        }
+      });
+    });
+
+    const avg = Math.round(scoreSum / rp.length * 10) / 10;
+    const totalIssues = bugsArr.length + brokenN + apiFail + perfArr.length;
+
+    const recs = [];
+    if (brokenN)         recs.push(`Fix ${brokenN} element(s) that crash or throw JS errors when clicked`);
+    if (bugsArr.length)  recs.push(`Resolve ${bugsArr.length} JS/runtime bug(s) — ${bugsArr[0].slice(0,80)}`);
+    if (apiFail)         recs.push(`${apiFail} API request(s) failing — check network tab for 4xx/5xx`);
+    if (perfArr.length)  recs.push(`Performance: ${perfArr[0].slice(0,80)}`);
+    if (uxArr.length)    recs.push(`UX: ${uxArr[0].slice(0,80)}`);
+    if (visArr.length)   recs.push(`Visual: ${visArr[0].slice(0,80)}`);
+    if (!recs.length)    recs.push('No actionable issues detected — route looks clean ✓');
+
+    return {
+      route, avg, totalIssues, apiFail,
+      bugCount:    bugsArr.length,
+      brokenCount: brokenN,
+      perfCount:   perfArr.length,
+      visCount:    visArr.length,
+      effort:      effortStr(totalIssues),
+      priority:    avg - brokenN*2 - apiFail*1.5 - bugsArr.length*0.4,
+      recs,
+      bugs:       [...new Set(bugsArr)].slice(0,5),
+      perf:       [...new Set(perfArr)].slice(0,3),
+      ux:         [...new Set(uxArr)].slice(0,3),
+      api:        [...new Set(apiArr)].slice(0,3),
+      visual:     [...new Set(visArr)].slice(0,3),
+      brokenInt:  [...new Set(brokenIntArr)].slice(0,6),
+    };
+  });
+}
+
+// ── Focus render ───────────────────────────────────────────────────────
+let _focusAreas = [];
+let _focusOpenSet = new Set();
+// Explorer state
+let explorerRouteStats = [];   // latest route_stats from KB
+let explorerFrontier   = [];   // live frontier preview [{url,route,score,cost}]
+let explorerCurrentBatch = []; // currently selected URLs for this batch
+let explorerLog        = [];   // per-page discovery records
+let explorerKbSummary  = {};   // kb_summary from complete event
+
+
+function renderFocus() {
+  const container = document.getElementById('focusCards');
+  const empty     = document.getElementById('focusEmpty');
+  const header    = document.getElementById('focusHeader');
+  const execEl    = document.getElementById('focusExecText');
+  if (!container) return;
+  if (!pages.length) { empty && (empty.style.display=''); return; }
+
+  empty && (empty.style.display = 'none');
+  header && (header.style.display = '');
+
+  // Sort
+  const sort   = document.getElementById('focusSort')?.value || 'priority';
+  const filter = document.getElementById('focusFilter')?.value || '';
+  let areas = [..._focusAreas];
+  if (filter === 'critical') areas = areas.filter(a => a.avg < 4);
+  if (filter === 'warning')  areas = areas.filter(a => a.avg >= 4 && a.avg < 7);
+  if (filter === 'good')     areas = areas.filter(a => a.avg >= 7);
+  if (sort === 'bugs')     areas.sort((a,b) => b.bugCount    - a.bugCount);
+  if (sort === 'broken')   areas.sort((a,b) => b.brokenCount - a.brokenCount);
+  if (sort === 'alpha')    areas.sort((a,b) => a.route.localeCompare(b.route));
+  // default: priority (worst first)
+  if (sort === 'priority') areas.sort((a,b) => a.priority - b.priority);
+
+  // Update exec summary text
+  const critN = _focusAreas.filter(a=>a.avg<4).length;
+  const warnN = _focusAreas.filter(a=>a.avg>=4&&a.avg<7).length;
+  const avgSc = pages.length ? (scores.reduce((s,v)=>s+v,0)/scores.length).toFixed(1) : '—';
+  const brokenTotal = _focusAreas.reduce((s,a)=>s+a.brokenCount,0);
+  const apiTotal    = _focusAreas.reduce((s,a)=>s+a.apiFail,0);
+  let execHtml = `Crawled <strong>${pages.length} pages</strong> across <strong>${_focusAreas.length} routes</strong>. `
+               + `Avg score <strong style="color:${scoreColor(parseFloat(avgSc)||5)}">${avgSc}/10</strong>. `;
+  if (critN)        execHtml += `<strong style="color:#ff4a6e">${critN} critical route(s)</strong> need immediate attention. `;
+  if (brokenTotal)  execHtml += `<strong style="color:#ff8c42">${brokenTotal} interaction(s) crash on click</strong> — fix before release. `;
+  if (apiTotal)     execHtml += `<strong style="color:#f5c842">${apiTotal} API failure(s)</strong> are causing broken data. `;
+  if (execEl) execEl.innerHTML = execHtml;
+
+  // Update badge
+  const badge = document.getElementById('focusBadge');
+  const prob  = _focusAreas.filter(a=>a.totalIssues>0).length;
+  if (badge) { badge.textContent = prob; badge.style.display = prob ? 'inline-flex' : 'none'; }
+
+  // Build cards
+  container.innerHTML = areas.map((a, i) => {
+    const c    = scoreColor(a.avg);
+    const lbl  = scoreLabel(a.avg);
+    const prio = a.avg < 4 ? '🔴 Critical' : a.avg < 7 ? '🟡 Needs work' : '🟢 Clean';
+    const key  = a.route + i;
+    const open = _focusOpenSet.has(key);
+
+    function b(n, cls, txt) {
+      return n ? `<span class="fa2-badge fa2-${cls}">${n} ${txt}</span>` : '';
+    }
+    const badges = b(a.bugCount,'bug','bug'+(a.bugCount!==1?'s':''))
+                 + b(a.brokenCount,'broken','broken')
+                 + b(a.apiFail,'api','API')
+                 + b(a.perfCount,'perf','perf')
+                 + b(a.visCount,'vis','visual');
+
+    const recLi = a.recs.map(r=>`<li>${r}</li>`).join('');
+
+    function dg(title, items) {
+      if (!items.length) return '';
+      return `<div class="fa2-dg"><div class="fa2-dtitle">${title}</div>`
+           + items.map(it=>`<div class="fa2-di">• ${it.slice(0,110)}</div>`).join('') + '</div>';
+    }
+    const details = dg('🐛 Bugs', a.bugs)
+                  + dg('💥 Broken', a.brokenInt)
+                  + dg('🔌 API', a.api)
+                  + dg('⚡ Perf', a.perf)
+                  + dg('🎨 Visual/UX', [...a.visual, ...a.ux]);
+
+    return `<div class="fa2-card">
+      <div class="fa2-hd" onclick="toggleFa2('${CSS.escape(key)}')">
+        <span class="fa2-rank">#${i+1}</span>
+        <code class="fa2-route">${a.route||'/'}</code>
+        <span class="fa2-prio">${prio}</span>
+        ${badges}
+        <span style="flex:1"></span>
+        <span class="fa2-score" style="color:${c}">${a.avg}/10</span>
+        <span class="fa2-lbl" style="color:${c}">${lbl}</span>
+        <span class="fa2-eff">${a.effort}</span>
+        <span class="fa2-chev ${open?'open':''}" id="fac2-${CSS.escape(key)}">▶</span>
+      </div>
+      <div class="fa2-bd" id="fab2-${CSS.escape(key)}" style="display:${open?'':'none'}">
+        <div class="fa2-cols">
+          <div>
+            <div class="fa2-sect-title">What to fix</div>
+            <ul class="fa2-recs">${recLi}</ul>
+          </div>
+          <div>
+            <div class="fa2-sect-title">Issue details</div>
+            ${details || '<span style="color:var(--muted);font-size:.7rem">No specific details.</span>'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFa2(key) {
+  const esc = CSS.escape(key);
+  const bd  = document.getElementById('fab2-' + esc);
+  const ch  = document.getElementById('fac2-' + esc);
+  if (!bd) return;
+  const open = bd.style.display === 'none';
+  bd.style.display = open ? '' : 'none';
+  ch && ch.classList.toggle('open', open);
+  if (open) _focusOpenSet.add(key);
+  else       _focusOpenSet.delete(key);
+}
+
+// ── Route tree computation + render ───────────────────────────────────
+
+function buildRouteTree() {
+  const root = {};
+  pages.forEach(p => {
+    const path  = groupedPath(p.url);
+    const parts = path.split('/').filter(Boolean);
+    if (!parts.length) parts.push('(root)');
+    const a     = p.analysis || {};
+    const score = parseFloat(a.health_score ?? p.health_score ?? 5) || 5;
+    const bugs  = (a.bugs||[]).filter(realIssue).length + (a.visual_issues||[]).filter(realIssue).length;
+    const broken = p.broken_interactions || 0;
+
+    let node = root;
+    for (const part of parts) {
+      node[part] = node[part] || { __p: [], __ch: {} };
+      node = node[part].__ch;
+    }
+    // store leaf
+    let leaf = root;
+    for (const part of parts.slice(0,-1)) leaf = leaf[part].__ch;
+    const last = parts[parts.length-1];
+    leaf[last] = leaf[last] || { __p: [], __ch: {} };
+    leaf[last].__p.push({ score, bugs, broken });
+  });
+  return root;
+}
+
+function aggTree(node) {
+  let sc=[], b=0, brk=0;
+  (node.__p||[]).forEach(p=>{ sc.push(p.score); b+=p.bugs; brk+=p.broken; });
+  Object.values(node.__ch||{}).forEach(ch=>{ const [cs,cb,cbk]=aggTree(ch); sc.push(cs); b+=cb; brk+=cbk; });
+  return [sc.length ? Math.round(sc.reduce((a,v)=>a+v,0)/sc.length*10)/10 : 5, b, brk];
+}
+
+function treeRowsHtml(tree, isLastList=[], parentPath='') {
+  let html = '';
+  const entries = Object.entries(tree).sort((a,b)=>a[0].localeCompare(b[0]));
+  entries.forEach(([name, node], idx) => {
+    const isLast = idx === entries.length - 1;
+    const [score, bugs, broken] = aggTree(node);
+    const c = scoreColor(score);
+    const route = name === '(root)'
+      ? '/'
+      : parentPath
+      ? `${parentPath}/${name}`.replace(/\/+/g, '/')
+      : `/${name}`;
+    const activeCount = activeScanRouteCounts.get(route) || 0;
+    const isActive = activeCount > 0;
+    const isAncestor = !isActive && [...activeScanRoutes].some(active => active.startsWith(route + '/'));
+
+    let pre = '';
+    isLastList.forEach(anc => { pre += anc ? '    ' : '│   '; });
+    const conn = isLast ? '└── ' : '├── ';
+
+    const bugB  = bugs   ? `<span class="tree2-b" style="background:#ff4a6e22;color:#ff4a6e">${bugs}🐛</span>` : '';
+    const brkB  = broken ? `<span class="tree2-b" style="background:#ff8c4222;color:#ff8c42">${broken}💥</span>` : '';
+    const okB   = !bugs && !broken ? `<span class="tree2-b" style="background:#22d37a22;color:#22d37a">✓</span>` : '';
+
+    html += `<div class="tree2-row ${isActive ? 'active' : isAncestor ? 'ancestor' : ''}">`
+          + `<span class="tree2-conn">${pre}${conn}</span>`
+          + `<span class="tree2-dot" style="background:${c}"></span>`
+          + `<span class="tree2-seg">/${name}</span>`
+          + `<span class="tree2-sc" style="color:${c}">${score}</span>`
+          + bugB + brkB + okB
+          + `${isActive ? `<span class="tree2-live">${activeCount > 1 ? `Live ×${activeCount}` : 'Live'}</span>` : isAncestor ? '<span class="tree2-live" style="background:rgba(74,140,255,.12);color:var(--blue)">Path</span>' : ''}`
+          + `</div>\n`;
+
+    if (node.__ch && Object.keys(node.__ch).length) {
+      html += treeRowsHtml(node.__ch, [...isLastList, isLast], route === '/' ? '' : route);
+    }
+  });
+  return html;
+}
+
+function renderTree() {
+  const box   = document.getElementById('treeBox');
+  const empty = document.getElementById('treeEmpty');
+  const bar   = document.getElementById('treeToolbar');
+  if (!box) return;
+  if (!pages.length) { empty && (empty.style.display=''); box.style.display='none'; return; }
+  empty && (empty.style.display = 'none');
+  box.style.display   = '';
+  if (bar) bar.style.display = 'flex';
+  const tree = buildRouteTree();
+  box.innerHTML = treeRowsHtml(tree) || '<span style="color:var(--muted)">No routes yet.</span>';
+}
+
+// ── Throttled rebuilder (called on every page_done) ────────────────────
+let _rebuildTimer = null;
+function rebuildFocusTree() {
+  clearTimeout(_rebuildTimer);
+  _rebuildTimer = setTimeout(() => {
+    _focusAreas = computeFocusAreas();
+    if (document.getElementById('focusPanel').classList.contains('on')) renderFocus();
+    if (document.getElementById('treePanel').classList.contains('on')) renderTree();
+  }, 600);  // debounce — rebuild at most every 600ms
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// EXPLORER TAB — Dijkstra frontier + element learning visualisation
+// ══════════════════════════════════════════════════════════════════════════
+
+function noveltyColor(n) {
+  if (n >= 8)  return '#22d37a';   // bright green  — fresh territory
+  if (n >= 5)  return '#f5c842';   // yellow        — some knowledge
+  if (n >= 2)  return '#ff8c42';   // orange        — mostly known
+  return '#ff4a6e';                // red           — exhausted
+}
+
+function renderExplorerLegacy() {
+  const content = document.getElementById('explorerContent');
+  const empty   = document.getElementById('explorerEmpty');
+  if (!content) return;
+
+  const hasData = explorerLog.length > 0 || explorerRouteStats.length > 0;
+  if (!hasData) { empty.style.display = ''; content.style.display = 'none'; return; }
+  empty.style.display = 'none';
+  content.style.display = '';
+
+  // ── KPI strip ───────────────────────────────────────────────────────────
+  const kpis = document.getElementById('explorerKpis');
+  const totalNew   = explorerLog.reduce((s,r)=>s+r.n_new, 0);
+  const totalSkip  = explorerLog.reduce((s,r)=>s+r.n_skip, 0);
+  const exhausted  = explorerRouteStats.filter(r=>r.exhausted).length;
+  const pending    = explorerRouteStats.reduce((s,r)=>s+(r.links_pending||0), 0);
+  const runN       = explorerKbSummary.run ?? '—';
+  const kpiData = [
+    { v: runN,              k: 'Run #',           c: 'var(--cyan)'  },
+    { v: explorerLog.length,        k: 'Pages this run', c: '#fff'         },
+    { v: totalNew,          k: 'New elements',    c: 'var(--green)' },
+    { v: totalSkip,         k: 'Elements skipped',c: 'var(--muted)' },
+    { v: explorerKbSummary.elements ?? '—', k: 'Total in KB',  c: '#fff' },
+    { v: explorerKbSummary.skippable ?? '—', k: 'Skip next run',c: 'var(--yellow)' },
+    { v: exhausted,         k: 'Exhausted routes',c: 'var(--orange)'},
+    { v: pending,           k: 'Links pending',   c: 'var(--blue)'  },
+  ];
+  kpis.innerHTML = kpiData.map(k =>
+    `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;
+                 padding:.6rem 1rem;min-width:100px;flex:1">
+       <div style="font-size:1.4rem;font-weight:800;color:${k.c};font-family:'JetBrains Mono',monospace;line-height:1.1">${k.v}</div>
+       <div style="font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem">${k.k}</div>
+     </div>`
+  ).join('');
+
+  // ── Frontier list (top 20 by score) ─────────────────────────────────────
+  const frontierEl = document.getElementById('frontierList');
+  // Build scored list from route_stats for routes not yet visited this run
+  const visitedRoutes = new Set(explorerLog.map(r=>r.route));
+  const frontierRoutes = explorerRouteStats
+    .filter(r => !visitedRoutes.has(r.route))
+    .slice(0, 20);
+
+  if (frontierRoutes.length === 0) {
+    frontierEl.innerHTML = `<div style="color:var(--muted);font-size:.72rem;padding:.5rem">
+      ${explorerRouteStats.length === 0 ? 'No KB data yet — start the agent' : 'All known routes visited this run ✓'}
+    </div>`;
+  } else {
+    frontierEl.innerHTML = frontierRoutes.map((r, i) => {
+      const c = noveltyColor(r.novelty);
+      const barW = Math.round(r.novelty / 10 * 100);
+      return `<div style="padding:.3rem .5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+        <span style="font-size:.58rem;color:var(--muted);min-width:16px;font-family:'JetBrains Mono',monospace">#${i+1}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--blue);
+                      overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.route||'/'}</div>
+          <div style="height:3px;background:var(--border2);border-radius:2px;margin-top:3px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:${c};border-radius:2px;transition:width .3s"></div>
+          </div>
+        </div>
+        <span style="font-size:.65rem;font-weight:700;color:${c};font-family:'JetBrains Mono',monospace;flex-shrink:0">${r.novelty}</span>
+        ${r.links_pending ? `<span style="font-size:.55rem;background:var(--blue)22;color:var(--blue);border-radius:3px;padding:1px 4px;flex-shrink:0">${r.links_pending}🔗</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Novelty map (all known routes) ──────────────────────────────────────
+  const noveltyEl = document.getElementById('noveltyList');
+  const sorted = [...explorerRouteStats].sort((a,b) => b.novelty - a.novelty);
+  noveltyEl.innerHTML = sorted.slice(0, 30).map(r => {
+    const c    = noveltyColor(r.novelty);
+    const barW = Math.round(r.novelty / 10 * 100);
+    const visited = visitedRoutes.has(r.route);
+    return `<div style="padding:.28rem .5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+      <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.64rem;
+                    color:${visited?'var(--cyan)':'var(--text)'};
+                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${visited?'✓ ':''}${r.route||'/'}
+        </div>
+        <div style="height:3px;background:var(--border2);border-radius:2px;margin-top:2px;overflow:hidden">
+          <div style="height:100%;width:${barW}%;background:${c};border-radius:2px"></div>
+        </div>
+      </div>
+      <span style="font-size:.6rem;font-weight:700;color:${c};font-family:'JetBrains Mono',monospace;flex-shrink:0">${r.novelty}</span>
+      <span style="font-size:.55rem;color:var(--muted);flex-shrink:0">${r.visits}×</span>
+      ${r.exhausted ? '<span style="font-size:.52rem;background:#ff8c4222;color:#ff8c42;border-radius:3px;padding:1px 4px">exhausted</span>' : ''}
+    </div>`;
+  }).join('') || `<div style="color:var(--muted);font-size:.72rem;padding:.5rem">No route knowledge yet</div>`;
+
+  // ── Discovery log table ──────────────────────────────────────────────────
+  const tbody = document.getElementById('explorerLogBody');
+  if (!tbody) return;
+  tbody.innerHTML = explorerLog.slice(0, 60).map(r => {
+    const sc = r.frontier_score;
+    const sc_c = sc >= 7 ? 'var(--green)' : sc >= 4 ? 'var(--yellow)' : sc >= 1 ? 'var(--orange)' : 'var(--muted)';
+    const retryBadge = r.retry === 'scheduled'
+      ? '<span style="font-size:.55rem;background:var(--yellow)22;color:var(--yellow);border-radius:3px;padding:1px 4px">retry</span>'
+      : r.retry === 'persistent'
+      ? '<span style="font-size:.55rem;background:var(--red)22;color:var(--red);border-radius:3px;padding:1px 4px">persistent</span>'
+      : '<span style="font-size:.55rem;color:var(--muted)">—</span>';
+    const exBadge = r.exhausted
+      ? '<span style="font-size:.55rem;background:#ff8c4222;color:#ff8c42;border-radius:3px;padding:1px 4px">yes</span>'
+      : '<span style="font-size:.55rem;color:var(--muted)">—</span>';
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--blue)">${r.route}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${sc_c};text-align:center">${sc.toFixed(1)}</td>
+      <td style="text-align:center;color:${r.n_new>0?'var(--green)':'var(--muted)'};font-weight:${r.n_new>0?'700':'400'}">${r.n_new}</td>
+      <td style="text-align:center;color:var(--muted)">${r.n_skip}</td>
+      <td style="text-align:center;color:${r.n_links>0?'var(--blue)':'var(--muted)'}">${r.n_links}</td>
+      <td style="text-align:center">${exBadge}</td>
+      <td style="text-align:center">${retryBadge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:.5rem">No pages crawled yet</td></tr>';
+
+  // Update badge
+  const badge = document.getElementById('explorerBadge');
+  if (badge) {
+    const n = explorerRouteStats.filter(r=>!r.exhausted && r.novelty > 2).length;
+    badge.textContent = n;
+    badge.style.display = n > 0 ? 'inline-flex' : 'none';
+    badge.style.background = 'var(--green)';
+  }
+}
+
+function syncActiveRouteState(routes = null) {
+  const counts = new Map();
+  const source = (routes && routes.length) ? routes : activeScanUrls.map(groupedPath);
+  source.filter(Boolean).forEach(route => counts.set(route, (counts.get(route) || 0) + 1));
+  activeScanRouteCounts = counts;
+  activeScanRoutes = new Set(counts.keys());
+}
+
+function removeFirstMatchingValue(items, matcher) {
+  const next = [...items];
+  const idx = next.findIndex(matcher);
+  if (idx >= 0) next.splice(idx, 1);
+  return next;
+}
+
+function setActiveScan(urls = [], routes = null, fallback = '--') {
+  activeScanUrls = (urls || []).filter(Boolean);
+  syncActiveRouteState(routes);
+  renderActiveUrls(activeScanUrls, fallback);
+  if (document.getElementById('treePanel').classList.contains('on')) renderTree();
+}
+
+function trimMiddle(value, max = 30) {
+  const text = String(value ?? '');
+  if (text.length <= max) return text;
+  const keep = Math.max(6, Math.floor((max - 3) / 2));
+  return `${text.slice(0, keep)}...${text.slice(-keep)}`;
+}
+
+function plannerItemKey(item) {
+  return item?.url || item?.route || '';
+}
+
+function plannerItemCost(item) {
+  const cost = Number(item?.cost ?? Math.max(0, 10 - Number(item?.score ?? 0)));
+  return Number.isFinite(cost) ? cost : 10;
+}
+
+function plannerStateColor(state) {
+  switch (state) {
+    case 'selected': return 'var(--cyan)';
+    case 'best': return 'var(--green)';
+    case 'exhausted': return 'var(--red)';
+    default: return 'var(--blue)';
+  }
+}
+
+function plannerStateLabel(state) {
+  switch (state) {
+    case 'selected': return 'settled';
+    case 'best': return 'next pick';
+    case 'exhausted': return 'blocked';
+    default: return 'tentative';
+  }
+}
+
+function bezierPoint(p0, p1, p2, p3, t) {
+  const mt = 1 - t;
+  return {
+    x: (mt ** 3) * p0.x + 3 * (mt ** 2) * t * p1.x + 3 * mt * (t ** 2) * p2.x + (t ** 3) * p3.x,
+    y: (mt ** 3) * p0.y + 3 * (mt ** 2) * t * p1.y + 3 * mt * (t ** 2) * p2.y + (t ** 3) * p3.y,
+  };
+}
+
+function buildPlannerMap(selectedItems = [], frontierItems = []) {
+  const seen = new Set();
+  const chosen = selectedItems.map(item => ({ ...item, plannerState: 'selected' }));
+  chosen.forEach(item => seen.add(plannerItemKey(item)));
+  const queued = frontierItems
+    .filter(item => {
+      const key = plannerItemKey(item);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(item => ({ ...item, plannerState: item.exhausted ? 'exhausted' : 'queued' }));
+
+  const visible = [...chosen, ...queued].slice(0, 7);
+  if (!visible.length) {
+    return `<div class="planner-empty">No live frontier yet. Once URLs are queued, this board draws tentative paths and shows the minimum exploration distance.</div>`;
+  }
+
+  const winner = chosen[0] || [...queued].sort((a, b) => plannerItemCost(a) - plannerItemCost(b))[0] || visible[0];
+  const winnerKey = plannerItemKey(winner);
+  const sourceSeed = explorerLog[0]?.route || activeScanUrls[0] || '/';
+  const sourceRoute = groupedPath(sourceSeed);
+  const sourceLabel = trimMiddle(sourceRoute || '/', 22);
+
+  const items = visible.map((item, idx) => {
+    const key = plannerItemKey(item);
+    const state = item.plannerState === 'selected'
+      ? 'selected'
+      : key === winnerKey
+      ? 'best'
+      : item.exhausted
+      ? 'exhausted'
+      : 'queued';
+    return {
+      ...item,
+      state,
+      rank: idx + 1,
+      cost: plannerItemCost(item),
+    };
+  });
+
+  const costs = items.map(item => item.cost);
+  const minCost = Math.min(...costs);
+  const maxCost = Math.max(...costs, minCost + 1.5);
+  const width = 980;
+  const height = Math.max(320, 150 + items.length * 60);
+  const start = { x: 110, y: height / 2 };
+
+  const roadSvg = [];
+  const laneStep = items.length > 1 ? (height - 150) / (items.length - 1) : 0;
+  items.forEach((item, idx) => {
+    const norm = (item.cost - minCost) / (maxCost - minCost || 1);
+    const end = {
+      x: 390 + norm * 360 - (item.state === 'selected' ? 72 : item.state === 'best' ? 32 : 0),
+      y: items.length === 1 ? height / 2 : 75 + idx * laneStep,
+    };
+    const bend = (idx % 2 === 0 ? -1 : 1) * (24 + norm * 18);
+    const cp1 = { x: start.x + 120, y: start.y + (end.y - start.y) * 0.18 + bend };
+    const cp2 = { x: end.x - 140, y: end.y - bend };
+    const pathD = `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${end.x} ${end.y}`;
+    const color = plannerStateColor(item.state);
+    const bubbleX = Math.min(width - 220, end.x + 26);
+    const bubbleY = end.y - 24;
+    const checkpoints = Math.max(1, Math.min(4, Math.round(item.cost)));
+    const bubbleFill = item.state === 'selected'
+      ? 'rgba(0,212,170,.14)'
+      : item.state === 'best'
+      ? 'rgba(34,211,122,.12)'
+      : item.state === 'exhausted'
+      ? 'rgba(255,74,110,.10)'
+      : 'rgba(74,140,255,.10)';
+
+    roadSvg.push(`<path class="planner-road-base" d="${pathD}" style="stroke:${item.state === 'exhausted' ? 'rgba(255,74,110,.16)' : 'rgba(255,255,255,.08)'};stroke-width:${item.state === 'selected' ? 14 : 11};"></path>`);
+    roadSvg.push(`<path class="planner-road-flow ${item.state}" d="${pathD}" style="stroke:${color};stroke-width:${item.state === 'selected' ? 6.8 : item.state === 'best' ? 5.8 : 4.6};"></path>`);
+
+    for (let step = 1; step <= checkpoints; step++) {
+      const point = bezierPoint(start, cp1, cp2, end, step / (checkpoints + 1));
+      roadSvg.push(`<circle class="planner-checkpoint" cx="${point.x}" cy="${point.y}" r="${item.state === 'selected' ? 5 : 4}" fill="${color}" opacity="${item.state === 'exhausted' ? '.38' : '.82'}"></circle>`);
+    }
+
+    const tag = bezierPoint(start, cp1, cp2, end, 0.56);
+    roadSvg.push(`<g>
+      <rect x="${tag.x - 25}" y="${tag.y - 12}" width="50" height="20" rx="10" fill="rgba(6,8,16,.88)" stroke="rgba(255,255,255,.06)"></rect>
+      <text x="${tag.x}" y="${tag.y + 4}" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" fill="#f5c842">${item.cost.toFixed(1)}</text>
+    </g>`);
+
+    roadSvg.push(`<circle class="planner-node-dot ${item.state}" cx="${end.x}" cy="${end.y}" r="${item.state === 'selected' ? 13 : 11}" fill="${color}"></circle>`);
+    roadSvg.push(`<text x="${end.x}" y="${end.y + 4}" text-anchor="middle" font-size="10" font-family="JetBrains Mono, monospace" fill="#060810">${String.fromCharCode(66 + idx)}</text>`);
+    roadSvg.push(`<rect x="${bubbleX}" y="${bubbleY}" width="178" height="48" rx="14" fill="${bubbleFill}" stroke="${color}" stroke-opacity=".35"></rect>`);
+    roadSvg.push(`<text x="${bubbleX + 12}" y="${bubbleY + 18}" font-size="11" font-family="JetBrains Mono, monospace" fill="#ffffff">${escapeHtml(trimMiddle(item.route || '/', 24))}</text>`);
+    roadSvg.push(`<text x="${bubbleX + 12}" y="${bubbleY + 34}" font-size="10" font-family="Outfit, sans-serif" fill="#7f92ae">${escapeHtml(plannerStateLabel(item.state))} · ${item.links_pending ?? 0} links · ${item.visits ?? 0} visits</text>`);
+  });
+
+  const sourceBoxY = start.y - 35;
+  roadSvg.unshift(`<g>
+    <rect x="28" y="${sourceBoxY}" width="160" height="70" rx="18" fill="rgba(0,212,170,.10)" stroke="rgba(0,212,170,.32)"></rect>
+    <circle class="planner-node-dot selected" cx="${start.x}" cy="${start.y}" r="14" fill="#00d4aa"></circle>
+    <text x="${start.x}" y="${start.y + 4}" text-anchor="middle" font-size="11" font-family="JetBrains Mono, monospace" fill="#060810">A</text>
+    <text x="48" y="${sourceBoxY + 22}" font-size="10" font-family="Outfit, sans-serif" fill="#7f92ae">settled frontier</text>
+    <text x="48" y="${sourceBoxY + 42}" font-size="11" font-family="JetBrains Mono, monospace" fill="#ffffff">${escapeHtml(sourceLabel)}</text>
+    <text x="48" y="${sourceBoxY + 57}" font-size="10" font-family="Outfit, sans-serif" fill="#7f92ae">distances relax from here, lowest cost wins</text>
+  </g>`);
+
+  const flowChips = [
+    `<div class="planner-flow-chip start"><strong>A</strong><span>${escapeHtml(sourceLabel)}</span></div>`,
+    `<div class="planner-flow-chip relax"><strong>Relax</strong><span>${items.length} tentative route${items.length === 1 ? '' : 's'}</span></div>`,
+    `<div class="planner-flow-chip pick"><strong>Pick</strong><span>${escapeHtml(trimMiddle(winner.route || '/', 24))} @ ${plannerItemCost(winner).toFixed(1)}</span></div>`,
+  ].join('');
+
+  const legend = [
+    ['var(--cyan)', 'Settled now'],
+    ['var(--green)', 'Shortest next distance'],
+    ['var(--blue)', 'Tentative routes'],
+    ['var(--red)', 'Exhausted / blocked'],
+  ].map(([color, label]) => `<span class="planner-legend-chip"><span class="planner-legend-dot" style="background:${color}"></span>${label}</span>`).join('');
+
+  const tableRows = items.map(item => `
+    <div class="planner-mini-row ${item.state === 'selected' || item.state === 'best' ? 'active' : ''}">
+      <span class="planner-mini-rank">#${item.rank}</span>
+      <span class="planner-mini-route" title="${escapeHtml(item.route || '/')}">${escapeHtml(trimMiddle(item.route || '/', 34))}</span>
+      <span class="planner-mini-dist">dist ${item.cost.toFixed(1)}</span>
+      <span class="planner-mini-state">${escapeHtml(plannerStateLabel(item.state))}</span>
+    </div>
+  `).join('');
+
+  return `<div class="planner-map-shell">
+    <div class="planner-flow-strip">${flowChips}</div>
+    <div class="planner-map-wrap">
+      <div class="planner-map-grid"></div>
+      <svg class="planner-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+        ${roadSvg.join('')}
+      </svg>
+      <div class="planner-axis">
+        <span>shortest distance</span>
+        <span>longer exploratory detours</span>
+      </div>
+    </div>
+    <div class="planner-map-legend">${legend}</div>
+    <div class="planner-mini-table">${tableRows}</div>
+  </div>`;
+}
+
+function renderExplorer() {
+  const content = document.getElementById('explorerContent');
+  const empty   = document.getElementById('explorerEmpty');
+  if (!content) return;
+
+  const hasData = explorerLog.length > 0 || explorerRouteStats.length > 0 || explorerFrontier.length > 0 || explorerCurrentBatch.length > 0;
+  if (!hasData) { empty.style.display = ''; content.style.display = 'none'; return; }
+  empty.style.display = 'none';
+  content.style.display = '';
+
+  const visitedRoutes = new Set(explorerLog.map(r => r.route));
+
+  const kpis = document.getElementById('explorerKpis');
+  const totalNew   = explorerLog.reduce((s, r) => s + r.n_new, 0);
+  const totalSkip  = explorerLog.reduce((s, r) => s + r.n_skip, 0);
+  const exhausted  = explorerRouteStats.filter(r => r.exhausted).length;
+  const pending    = explorerRouteStats.reduce((s, r) => s + (r.links_pending || 0), 0);
+  const runN       = explorerKbSummary.run ?? '—';
+  const kpiData = [
+    { v: runN, k: 'Run #', c: 'var(--cyan)' },
+    { v: explorerLog.length, k: 'Pages this run', c: '#fff' },
+    { v: totalNew, k: 'New elements', c: 'var(--green)' },
+    { v: totalSkip, k: 'Elements skipped', c: 'var(--muted)' },
+    { v: explorerKbSummary.elements ?? '—', k: 'Total in KB', c: '#fff' },
+    { v: explorerKbSummary.skippable ?? '—', k: 'Skip next run', c: 'var(--yellow)' },
+    { v: exhausted, k: 'Exhausted routes', c: 'var(--orange)' },
+    { v: pending, k: 'Links pending', c: 'var(--blue)' },
+  ];
+  kpis.innerHTML = kpiData.map(k =>
+    `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;min-width:100px;flex:1">
+      <div style="font-size:1.4rem;font-weight:800;color:${k.c};font-family:'JetBrains Mono',monospace;line-height:1.1">${k.v}</div>
+      <div style="font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem">${k.k}</div>
+    </div>`
+  ).join('');
+
+  const plannerEl = document.getElementById('frontierPlanner');
+  const selectedItems = explorerCurrentBatch.slice(0, 8);
+  const frontierItems = explorerFrontier.slice(0, 10);
+  if (plannerEl) {
+    const mapHtml = buildPlannerMap(selectedItems, frontierItems);
+    const selectedHtml = selectedItems.length
+      ? selectedItems.map(item => `
+          <div class="planner-card selected">
+            <div class="planner-route">${escapeHtml(item.route || '/')}</div>
+            <div class="planner-url">${escapeHtml(item.url || '')}</div>
+            <div class="planner-meta">
+              <span class="planner-badge score">score ${Number(item.score ?? 0).toFixed(1)}</span>
+              <span class="planner-badge cost">cost ${Number(item.cost ?? 0).toFixed(1)}</span>
+              <span class="planner-badge pending">${item.links_pending ?? 0} links pending</span>
+            </div>
+          </div>`
+        ).join('')
+      : `<div class="planner-empty">No active batch right now. When the crawler pops URLs from the frontier, they appear here.</div>`;
+
+    const queueHtml = frontierItems.length
+      ? frontierItems.map((item, idx) => {
+          const score = Number(item.score ?? 0);
+          const cost = Number(item.cost ?? Math.max(0, 10 - score));
+          const color = noveltyColor(score);
+          const width = Math.max(8, Math.round((score / 10) * 100));
+          return `<div class="planner-step">
+            <div class="planner-rank">#${idx + 1}</div>
+            <div class="planner-linebox">
+              <div class="planner-card ${idx === 0 ? 'best' : ''} ${item.exhausted ? 'exhausted' : ''}">
+                <div class="planner-route">${escapeHtml(item.route || '/')}</div>
+                <div class="planner-url">${escapeHtml(item.url || '')}</div>
+                <div class="planner-line"><div class="planner-line-fill" style="width:${width}%;background:linear-gradient(90deg, ${color}, var(--cyan))"></div></div>
+                <div class="planner-meta">
+                  <span class="planner-badge score">score ${score.toFixed(1)}</span>
+                  <span class="planner-badge cost">cost ${cost.toFixed(1)}</span>
+                  <span class="planner-badge pending">${item.links_pending ?? 0} links pending</span>
+                  <span class="planner-badge">${item.visits ?? 0} visits</span>
+                  ${item.exhausted ? '<span class="planner-badge" style="color:var(--orange)">exhausted</span>' : ''}
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')
+      : `<div class="planner-empty">${
+          selectedItems.length
+            ? 'The frontier is temporarily empty because the current batch already consumed the best candidates.'
+            : 'No frontier queue yet. Start the agent or let the crawler discover more links.'
+        }</div>`;
+
+    plannerEl.innerHTML = `${mapHtml}
+    <div class="planner-wrap">
+      <div class="planner-panel">
+        <div class="planner-head">
+          <span class="planner-title">Selected now</span>
+          <span class="planner-sub">${selectedItems.length || 0} active</span>
+        </div>
+        ${selectedHtml}
+      </div>
+      <div class="planner-panel">
+        <div class="planner-head">
+          <span class="planner-title">Best next hops</span>
+          <span class="planner-sub">lower cost gets picked first</span>
+        </div>
+        ${queueHtml}
+      </div>
+    </div>
+    <div class="planner-caption">
+      This board renders the live frontier like a map search. "A" is the settled frontier, every road is a tentative route,
+      and the road tag is its exploration distance. The crawler is still using its real Dijkstra-style priority queue:
+      higher novelty and more pending links lower the effective distance, exhausted routes push it up, and the smallest
+      distance is what gets settled next.
+    </div>`;
+  }
+
+  const frontierEl = document.getElementById('frontierList');
+  if (!explorerFrontier.length) {
+    frontierEl.innerHTML = `<div style="color:var(--muted);font-size:.72rem;padding:.5rem">
+      ${explorerCurrentBatch.length ? 'Queue drained for this moment — waiting for the current batch to finish.' : explorerRouteStats.length === 0 ? 'No KB data yet — start the agent' : 'No live frontier candidates right now.'}
+    </div>`;
+  } else {
+    frontierEl.innerHTML = explorerFrontier.map((r, i) => {
+      const score = Number(r.score ?? 0);
+      const cost = Number(r.cost ?? Math.max(0, 10 - score));
+      const c = noveltyColor(score);
+      const barW = Math.round(score / 10 * 100);
+      return `<div style="padding:.3rem .5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+        <span style="font-size:.58rem;color:var(--muted);min-width:16px;font-family:'JetBrains Mono',monospace">#${i + 1}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.route || '/')}</div>
+          <div style="height:3px;background:var(--border2);border-radius:2px;margin-top:3px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:${c};border-radius:2px;transition:width .3s"></div>
+          </div>
+        </div>
+        <span style="font-size:.65rem;font-weight:700;color:${c};font-family:'JetBrains Mono',monospace;flex-shrink:0">${score.toFixed(1)}</span>
+        <span style="font-size:.55rem;background:var(--yellow)22;color:var(--yellow);border-radius:3px;padding:1px 4px;flex-shrink:0">cost ${cost.toFixed(1)}</span>
+        ${r.links_pending ? `<span style="font-size:.55rem;background:var(--blue)22;color:var(--blue);border-radius:3px;padding:1px 4px;flex-shrink:0">${r.links_pending} links</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  const noveltyEl = document.getElementById('noveltyList');
+  const sorted = [...explorerRouteStats].sort((a, b) => b.novelty - a.novelty);
+  noveltyEl.innerHTML = sorted.slice(0, 30).map(r => {
+    const c = noveltyColor(r.novelty);
+    const barW = Math.round(r.novelty / 10 * 100);
+    const visited = visitedRoutes.has(r.route);
+    const activeCount = activeScanRouteCounts.get(r.route) || 0;
+    const active = activeCount > 0;
+    return `<div style="padding:.28rem .5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem">
+      <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.64rem;color:${active ? '#fff' : visited ? 'var(--cyan)' : 'var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${active ? '→ ' : visited ? '✓ ' : ''}${escapeHtml(r.route || '/')}
+        </div>
+        <div style="height:3px;background:var(--border2);border-radius:2px;margin-top:2px;overflow:hidden">
+          <div style="height:100%;width:${barW}%;background:${c};border-radius:2px"></div>
+        </div>
+      </div>
+      <span style="font-size:.6rem;font-weight:700;color:${c};font-family:'JetBrains Mono',monospace;flex-shrink:0">${r.novelty}</span>
+      ${active ? `<span style="font-size:.52rem;background:rgba(0,212,170,.14);color:var(--cyan);border-radius:3px;padding:1px 4px">${activeCount > 1 ? `${activeCount} live` : 'live'}</span>` : ''}
+      <span style="font-size:.55rem;color:var(--muted);flex-shrink:0">${r.visits}×</span>
+      ${r.exhausted ? '<span style="font-size:.52rem;background:#ff8c4222;color:#ff8c42;border-radius:3px;padding:1px 4px">exhausted</span>' : ''}
+    </div>`;
+  }).join('') || `<div style="color:var(--muted);font-size:.72rem;padding:.5rem">No route knowledge yet</div>`;
+
+  const tbody = document.getElementById('explorerLogBody');
+  if (!tbody) return;
+  tbody.innerHTML = explorerLog.slice(0, 60).map(r => {
+    const sc = Number(r.frontier_score ?? 0);
+    const scColor = sc >= 7 ? 'var(--green)' : sc >= 4 ? 'var(--yellow)' : sc >= 1 ? 'var(--orange)' : 'var(--muted)';
+    const retryBadge = r.retry === 'scheduled'
+      ? '<span style="font-size:.55rem;background:var(--yellow)22;color:var(--yellow);border-radius:3px;padding:1px 4px">retry</span>'
+      : r.retry === 'persistent'
+      ? '<span style="font-size:.55rem;background:var(--red)22;color:var(--red);border-radius:3px;padding:1px 4px">persistent</span>'
+      : '<span style="font-size:.55rem;color:var(--muted)">—</span>';
+    const exBadge = r.exhausted
+      ? '<span style="font-size:.55rem;background:#ff8c4222;color:#ff8c42;border-radius:3px;padding:1px 4px">yes</span>'
+      : '<span style="font-size:.55rem;color:var(--muted)">—</span>';
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--blue)">${escapeHtml(r.route)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${scColor};text-align:center">${sc.toFixed(1)}</td>
+      <td style="text-align:center;color:${r.n_new > 0 ? 'var(--green)' : 'var(--muted)'};font-weight:${r.n_new > 0 ? '700' : '400'}">${r.n_new}</td>
+      <td style="text-align:center;color:var(--muted)">${r.n_skip}</td>
+      <td style="text-align:center;color:${r.n_links > 0 ? 'var(--blue)' : 'var(--muted)'}">${r.n_links}</td>
+      <td style="text-align:center">${exBadge}</td>
+      <td style="text-align:center">${retryBadge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:.5rem">No pages crawled yet</td></tr>';
+
+  const badge = document.getElementById('explorerBadge');
+  if (badge) {
+    const n = explorerRouteStats.filter(r => !r.exhausted && r.novelty > 2).length;
+    badge.textContent = n;
+    badge.style.display = n > 0 ? 'inline-flex' : 'none';
+    badge.style.background = 'var(--green)';
+  }
+}
+</script>
+<!-- Screenshot lightbox -->
+<div id="shotLightbox" onclick="closeLightbox()">
+  <button id="shotLightboxClose" onclick="closeLightbox()">✕</button>
+  <img id="shotLightboxImg" src="" alt="">
+  <div id="shotLightboxCaption"></div>
+</div>
+</body>
+</html>

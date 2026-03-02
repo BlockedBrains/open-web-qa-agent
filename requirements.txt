@@ -1,0 +1,9 @@
+playwright>=1.44
+websockets>=12.0
+
+# LLM / AI
+# langgraph>=0.1.0        # optional: enable with QA_LANGGRAPH=1
+# langchain-core>=0.2.0   # required if using langgraph
+
+# Alerts
+# slack-sdk>=3.0          # optional, only needed if QA_SLACK_WEBHOOK set
